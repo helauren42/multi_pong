@@ -1,0 +1,114 @@
+Exercise 1: Basic Object Copying
+Objective: Understand how Object.assign() works for copying objects.
+
+Task:
+
+Create a Car object with properties like make, model, and year.
+Use Object.assign() to create a new object myCar that copies all properties from Car.
+Modify a property in myCar and log both Car and myCar to see if the original object remains unchanged.
+Example:
+
+javascript
+Copier le code
+let Car = { make: 'Toyota', model: 'Corolla', year: 2020 };
+let myCar = Object.assign({}, Car);
+
+myCar.year = 2021;
+
+console.log(Car);    // Original Car object
+console.log(myCar);  // Modified copy
+Exercise 2: Merging Multiple Objects
+Objective: Learn how to merge multiple objects into one using Object.assign().
+
+Task:
+
+Create three objects: objectA with properties {a: 1}, objectB with properties {b: 2}, and objectC with properties {c: 3}.
+Use Object.assign() to merge these objects into a single object called mergedObject.
+Log the mergedObject to see the combined properties.
+Example:
+
+javascript
+Copier le code
+let objectA = { a: 1 };
+let objectB = { b: 2 };
+let objectC = { c: 3 };
+
+let mergedObject = Object.assign({}, objectA, objectB, objectC);
+
+console.log(mergedObject);  // Should print { a: 1, b: 2, c: 3 }
+Exercise 3: Copy with Nested Objects
+Objective: Understand the limitation of Object.assign() with nested objects.
+
+Task:
+
+Create an object Person with properties including a nested object address like { city: 'New York', zip: 10001 }.
+Use Object.assign() to copy Person to personCopy.
+Modify a property in the nested address object of personCopy and observe if Person is affected.
+Example:
+
+javascript
+Copier le code
+let Person = {
+  name: 'John Doe',
+  address: {
+    city: 'New York',
+    zip: 10001
+  }
+};
+
+let personCopy = Object.assign({}, Person);
+
+personCopy.address.city = 'San Francisco';
+
+console.log(Person.address.city);    // Observe changes
+console.log(personCopy.address.city);
+Exercise 4: Creating Defaults
+Objective: Learn how to use Object.assign() to apply default values to an object.
+
+Task:
+
+Create an object defaults with default properties like { theme: 'light', showNotifications: true }.
+Create another object userSettings with some properties set by the user, e.g., { theme: 'dark' }.
+Use Object.assign() to merge defaults and userSettings into a new object finalSettings, giving precedence to user settings.
+Log finalSettings.
+Example:
+
+javascript
+Copier le code
+let defaults = { theme: 'light', showNotifications: true };
+let userSettings = { theme: 'dark' };
+
+let finalSettings = Object.assign({}, defaults, userSettings);
+
+console.log(finalSettings);  // Should print { theme: 'dark', showNotifications: true }
+Exercise 5: Implementing Inheritance-Like Behavior
+Objective: Use Object.assign() to simulate inheritance.
+
+Task:
+
+Create a Vehicle object with properties and methods like type, speed, and move().
+Create another object Car that will use Object.assign() to copy properties from Vehicle and add its own property brand.
+Test if Car can use the method from Vehicle.
+Example:
+
+javascript
+Copier le code
+let Vehicle = {
+  type: 'vehicle',
+  speed: 0,
+  move() {
+    console.log(`Moving at speed ${this.speed}`);
+  }
+};
+
+let Car = Object.assign({}, Vehicle, { brand: 'Tesla' });
+
+Car.speed = 60;
+Car.move();  // Should print "Moving at speed 60"
+
+console.log(Car.brand);  // Should print "Tesla"
+Explanation and Use Cases
+Copying Objects: Object.assign() allows you to create copies of objects. This is helpful when you want to create a new instance of an object without affecting the original.
+Merging Objects: It helps in combining multiple objects into one, useful for merging configuration objects or settings.
+Defaults: You can apply default values to an object and then override them with specific values as needed.
+Inheritance: Although JavaScript has other ways to handle inheritance (like prototypes or classes), Object.assign() can be used to copy methods and properties from one object to another.
