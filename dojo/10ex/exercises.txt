@@ -1,0 +1,39 @@
+01 : 
+Basic Object Creation and Modification:
+Create an object representing a Ball with properties such as width, height, vx (velocity x), and vy (velocity y). Write methods/functions to modify these properties.
+
+02 : 
+Constructor Function:
+Define a constructor function Ball that initializes instances with properties width, height, vx, and vy. Create instances using the new keyword and modify their properties.
+
+03 : 
+Object Methods:
+Add methods to your Ball object (either through object literal or constructor function) that update its position based on the velocity (move() method).
+
+04 : 
+Inheritance and Prototypes:
+Extend the Ball object using prototypal inheritance to create a Football object that inherits properties and methods from Ball but has additional properties specific to a football.
+
+05 : 
+Class Syntax:
+Rewrite the Ball constructor function using ES6 class syntax. Ensure it behaves identically to the previous implementation.
+
+06 : 
+Static Methods and Properties:
+Add a static method to your Ball class that calculates the total number of instances created. Use a static property to keep track of this count.
+
+07 : 
+Module Pattern:
+Rewrite your Ball class as an ES6 module. Import and use it in a separate file or module.
+
+08 : 
+Factory Function:
+Create a factory function createBall that returns instances of Ball with predefined configurations based on arguments passed to the factory function.
+
+09 : 
+Composition:
+Define a Player class with properties like name, age, and position. Create a Team class that contains an array of Player objects and methods to add/remove players.
+
+10 : 
+Event Handling and Interaction:
+Extend your Ball or Football object to handle mouse click events, where clicking on the ball changes its velocity or position.
