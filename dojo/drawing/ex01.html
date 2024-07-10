@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Exercise 1</title>
+</head>
+<body>
+    <h1 id="header">Original Text</h1>
+    <p id="text" onclick=changeText()>Hello</p>
+    <script>
+      function changeText()
+      {
+        var newText = document.getElementById("text");
+        if(newText.innerHTML == "Hello")
+            newText.innerHTML = "World!";
+        else
+            newText.innerHTML = "Hello";
+      }
+    </script>
+</body>
+</html>

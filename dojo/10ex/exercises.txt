@@ -4,7 +4,8 @@ Create an object representing a Ball with properties such as width, height, vx (
 
 02 : 
 Constructor Function:
-Define a constructor function Ball that initializes instances with properties width, height, vx, and vy. Create instances using the new keyword and modify their properties.
+Define a constructor function Ball that initializes instances with properties width, height, vx, and vy. Create instances using the new 
+keyword and modify their properties.
 
 03 : 
 Object Methods:

@@ -1,0 +1,155 @@
+Exercise 1: Basic getElementById Manipulation
+Objective: Change the text of an HTML element using getElementById.
+HTML:
+html
+Copier le code
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Exercise 1</title>
+</head>
+<body>
+    <h1 id="header">Original Text</h1>
+    <button onclick="changeText()">Change Text</button>
+
+    <script>
+        function changeText() {
+            var header = document.getElementById("header");
+            header.innerHTML = "New Text";
+        }
+    </script>
+</body>
+</html>
+Task: Modify the text of the header when the button is clicked.
+Exercise 2: Drawing on Canvas
+Objective: Draw a rectangle on a canvas element.
+HTML:
+html
+Copier le code
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Exercise 2</title>
+</head>
+<body>
+    <canvas id="myCanvas" width="200" height="100" style="border:1px solid #000000;"></canvas>
+
+    <script>
+        function drawRectangle() {
+            var canvas = document.getElementById("myCanvas");
+            var ctx = canvas.getContext("2d");
+            ctx.fillStyle = "#FF0000";
+            ctx.fillRect(20, 20, 150, 100);
+        }
+        drawRectangle();
+    </script>
+</body>
+</html>
+Task: Draw a red rectangle on the canvas.
+Exercise 3: Using document.querySelector()
+Objective: Change the style of an element using document.querySelector().
+HTML:
+html
+Copier le code
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Exercise 3</title>
+    <style>
+        .myClass {
+            color: blue;
+        }
+    </style>
+</head>
+<body>
+    <p class="myClass">This is a paragraph.</p>
+    <button onclick="changeColor()">Change Color</button>
+
+    <script>
+        function changeColor() {
+            var paragraph = document.querySelector(".myClass");
+            paragraph.style.color = "red";
+        }
+    </script>
+</body>
+</html>
+Task: Change the color of the paragraph to red when the button is clicked.
+Exercise 4: Drawing a Circle on Canvas
+Objective: Draw a circle on a canvas element.
+HTML:
+html
+Copier le code
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Exercise 4</title>
+</head>
+<body>
+    <canvas id="myCanvas" width="200" height="200" style="border:1px solid #000000;"></canvas>
+
+    <script>
+        function drawCircle() {
+            var canvas = document.getElementById("myCanvas");
+            var ctx = canvas.getContext("2d");
+            ctx.beginPath();
+            ctx.arc(100, 100, 50, 0, 2 * Math.PI);
+            ctx.stroke();
+        }
+        drawCircle();
+    </script>
+</body>
+</html>
+Task: Draw a circle in the center of the canvas.
+Exercise 5: Dynamic Content Creation
+Objective: Add new elements to the DOM using JavaScript.
+HTML:
+html
+Copier le code
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Exercise 5</title>
+</head>
+<body>
+    <div id="container"></div>
+    <button onclick="addElement()">Add Element</button>
+
+    <script>
+        function addElement() {
+            var newDiv = document.createElement("div");
+            newDiv.innerHTML = "I am a new div!";
+            document.getElementById("container").appendChild(newDiv);
+        }
+    </script>
+</body>
+</html>
+Task: Add a new <div> element to the container each time the button is clicked.
+Exercise 6: Interactive Canvas Drawing
+Objective: Draw a rectangle on the canvas where the user clicks.
+HTML:
+html
+Copier le code
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Exercise 6</title>
+</head>
+<body>
+    <canvas id="myCanvas" width="400" height="400" style="border:1px solid #000000;"></canvas>
+
+    <script>
+        var canvas = document.getElementById("myCanvas");
+        var ctx = canvas.getContext("2d");
+
+        canvas.addEventListener("click", function(event) {
+            var rect = canvas.getBoundingClientRect();
+            var x = event.clientX - rect.left;
+            var y = event.clientY - rect.top;
+            ctx.fillStyle = "#00FF00";
+            ctx.fillRect(x, y, 50, 50);
+        });
+    </script>
+</body>
+</html>
+Task: Draw a green rectangle at the position where the user clicks on the canvas.
+These exercises cover basic and slightly advanced DOM manipulation, interaction with canvas, and using selectors. Each exercise builds on fundamental concepts that are crucial for web development.
