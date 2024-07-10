@@ -14,13 +14,13 @@ let format;
 
 if(window.innerWidth <= window.innerHeight)
 {
-	canvas.width=window.innerWidth - window.innerWidth / 40;
+	canvas.width=window.innerWidth - window.innerWidth / 20;
 	canvas.height=canvas.width;
 	format = "width";
 }
 else
 {
-	canvas.width=window.innerHeight - window.innerHeight / 40;
+	canvas.width=window.innerHeight - window.innerHeight / 20;
 	canvas.height=canvas.width;
 	format = "height";
 }
@@ -32,24 +32,32 @@ function makeBall () {
 	this.pos_y = Math.random() * ((canvas.width / 4 * 3) - (canvas.width / 4)) + (canvas.width / 4),
 	this.radius = canvas.width / 40,
 	this.direction = Math.random(),
-	
+
 	this.setVelocity = function()
 	{
 		if(this.direction <= 0.25) {
-			this.ball_velocity_x = canvas.width / 300,
-			this.ball_velocity_y = canvas.height / 300
+			// this.ball_velocity_x = canvas.width / 300,
+			// this.ball_velocity_y = canvas.height / 300
+			this.ball_velocity_x = 4,
+			this.ball_velocity_y = 0
 		}
 		else if(this.direction <= 0.5) {
-			this.ball_velocity_x = - canvas.width / 300,
-			this.ball_velocity_y = canvas.height / 300
+			// this.ball_velocity_x = - canvas.width / 300,
+			// this.ball_velocity_y = canvas.height / 300
+			this.ball_velocity_x = - 4,
+			this.ball_velocity_y = 0
 		}
 		else if(this.direction <= 0.75) {
-			this.ball_velocity_x = canvas.width / 300,
-			this.ball_velocity_y = - canvas.height / 300
+			// this.ball_velocity_x = canvas.width / 300,
+			// this.ball_velocity_y = - canvas.height / 300
+			this.ball_velocity_x = 0,
+			this.ball_velocity_y = 4
 		}
 		else {
-			this.ball_velocity_x = - canvas.width / 300,
-			this.ball_velocity_y = - canvas.height / 300
+			// this.ball_velocity_x = - canvas.width / 300,
+			// this.ball_velocity_y = - canvas.height / 300
+			this.ball_velocity_x = 0,
+			this.ball_velocity_y = -4
 		}
 	};
 	
@@ -150,45 +158,46 @@ function colliding_ball_paddle(ball, paddles)
 {
 	// console.log(ball.pos_y >= canvas.height - (ball.radius + paddles.left.width));
 	// console.log(ball.pos_y, ">=", canvas.height, "- (", ball.radius, "+" paddles.left.width, ")");
-	console.log("WHOLE BOTTOME: ", ((ball.pos_y >= canvas.height - (ball.radius + paddles.bottom.width))
-	&& ball.pos_x >= paddles.bottom.pos_x && ball.pos_x <= paddles.bottom.pos_x + paddles.bottom.height));
 
-	console.log(ball.pos_x >= paddles.bottom.pos_x && ball.pos_x <= (paddles.bottom.pos_x + paddles.bottom.height));
-	console.log(ball.pos_x >= paddles.bottom.pos_x);
-	console.log(ball.pos_x, ">=", paddles.bottom.pos_x)
-	console.log(ball.pos_x <= (paddles.bottom.pos_x + paddles.bottom.height));
-	console.log(ball.pos_x, "<=", "( ", paddles.bottom.pos_x, "+",  paddles.bottom.height, " )");
+	// console.log("TOP: ");
+	// console.log(ball.pos_x >= paddles.top.pos_x && ball.pos_x <= paddles.top.pos_x + paddles.top.height);
+	// console.log(ball.pos_x >= paddles.top.pos_x);
+	// console.log(ball.pos_x, ">=", paddles.bottom.pos_x)
+	// console.log(ball.pos_x <= paddles.top.pos_x + paddles.top.height);
+	// console.log(ball.pos_x, "<=", "( ", paddles.bottom.pos_x, "+",  paddles.bottom.height, " )");
 
-	// if((ball.pos_x <= ball.radius + paddles.left.width && ball.pos_y <= ball.radius + paddles.left.width 
-	// 	&& ball.pos_x >= canvas.width - (ball.radius + paddles.left.width) && ball.pos_y >= canvas.height - (ball.radius + paddles.bottom.width)))
+	// if(!(ball.pos_x <= ball.radius + paddles.left.width || ball.pos_y <= ball.radius + paddles.left.width 
+	// 	|| ball.pos_x >= canvas.width - (ball.radius + paddles.left.width) || ball.pos_y >= canvas.height - (ball.radius + paddles.bottom.width)))
 	// {
 	// 	console.log("OUT OF HERE");	
 	// 	return ;
 	// }
-	if((ball.pos_x <= ball.radius + paddles.left.width) && ball.pos_y >= paddles.left.pos_y && ball.pos_y <= paddles.left.pos_y + paddles.left.height) // left paddle
+	if((ball.pos_x <= ball.radius + paddles.left.width) 
+		&& ball.pos_y >= paddles.left.pos_y - ball.radius && ball.pos_y <= paddles.left.pos_y + paddles.left.height + ball.radius) // left paddle
 	{
-		ball.ball_velocity_x -= ball.ball_velocity_x;
+		ball.ball_velocity_x = -ball.ball_velocity_x;
 		console.log("hit left paddle");
 	}			
-	else if((ball.pos_y <= ball.radius + paddles.top.width) && ball.pos_x >= paddles.top.pos_x && ball.pos_x <= paddles.top.pos_x + paddles.top.height) // top paddle
+	else if((ball.pos_y <= ball.radius + paddles.top.width) 
+		&& ball.pos_x >= paddles.top.pos_x - ball.radius && ball.pos_x <= paddles.top.pos_x + paddles.top.height + ball.radius) // top paddle
 	{
-		ball.ball_velocity_y -= ball.ball_velocity_y;
+		ball.ball_velocity_y = -ball.ball_velocity_y;
 		console.log("hit top paddle");
 	}			
 	else if((ball.pos_x >= canvas.width - (ball.radius + paddles.right.width)) 
-		&& ball.pos_y >= paddles.right.pos_y && ball.pos_y <= paddles.right.pos_y + paddles.right.height) // right paddle
+		&& ball.pos_y >= paddles.right.pos_y - ball.radius && ball.pos_y <= paddles.right.pos_y + paddles.right.height + ball.radius) // right paddle
 	{
 		ball.ball_velocity_x = -ball.ball_velocity_x;
 		console.log("hit right paddle");
 	}
 	else if((ball.pos_y >= canvas.height - (ball.radius + paddles.bottom.width))
-		&& ball.pos_x >= paddles.bottom.pos_x && ball.pos_x <= paddles.bottom.pos_x + paddles.bottom.height) // bottom paddle
+		&& ball.pos_x >= paddles.bottom.pos_x - ball.radius && ball.pos_x <= paddles.bottom.pos_x + paddles.bottom.height + ball.radius) // bottom paddle
 	{
 		console.log("PRE vel y :", ball.ball_velocity_y);
 		ball.ball_velocity_y = -ball.ball_velocity_y;
 		console.log("POST vel y :", ball.ball_velocity_y);
 		console.log("hit bottom paddle");
-	}	
+	}
 }
 
 // PLAY
