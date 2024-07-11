@@ -1,3 +1,12 @@
+// BUGS :
+// super rare and super hard to replicate but there is a case where a player scores an own goal (ball hits his paddle and goes in goal, 
+// tho it might be that it hit the paddle and the goal at the same time and it counts this as a player's goal, happend when moving fast as well
+// not just because it hit the paddle and the goal at the same time
+
+// major improvements on the lagging and sticking to the paddle after a fast movement but can still happen
+
+// 
+
 // const INIT VARIBALES
 
 const net_color = "gray";
@@ -12,6 +21,11 @@ const player_bottom_colour = "orange";
 const player_left_colour = "green";
 const player_right_colour = "purple";
 
+const left_ai = true;
+const right_ai = false;
+const top_ai = true;
+const bottom_ai = true;
+// const single_player = false;
 
 // INIT VARIABLES WITH SIZES
 
@@ -59,6 +73,7 @@ function make_ball () {
 			this.ball_velocity_y = - canvas.height / ball_velocity_div
 		}
 		this.ball_velocity_y = Math.abs(this.ball_velocity_y);
+		this.pos_y = canvas.width / 4 * 3;
 	};
 	this.move_ball = function ()
 	{
@@ -73,6 +88,26 @@ function make_ball () {
 		ctx.fill();
 		ctx.strokeStyle = "red";
 		ctx.stroke();
+	}
+	this.speed_up = function()
+	{
+		this.ball_velocity_x += 0.08 * canvas.width / ball_velocity_div;
+		this.ball_velocity_y += 0.08 * canvas.width / ball_velocity_div;
+		this.ball_velocity_x += 0.08 * this.ball_velocity_x;
+		this.ball_velocity_y += 0.08 * this.ball_velocity_y;
+	}
+	this.reposition_ball_above_paddle = function(last_touch)
+	{
+		console.log("Before: ", this);
+		if(last_touch == "left")
+			this.pos_x += Math.abs(this.ball_velocity_x);
+		if(last_touch == "right")
+			this.pos_x -= Math.abs(this.ball_velocity_x);
+		if(last_touch == "top")
+			this.pos_y += Math.abs(this.ball_velocity_y);
+		if(last_touch == "bottom")
+			this.pos_y -= Math.abs(this.ball_velocity_y);
+		console.log("After: ", this);
 	}
 	this.setVelocity(this.direction);
 }
@@ -277,24 +312,7 @@ let paddle_bottom = new make_paddle("bottom");
 let paddles = {left: paddle_left, right: paddle_right, top: paddle_top, bottom:paddle_bottom};
 let isGoal = false;
 let	first = true;
-
-function key_down(event)
-{
-	if(event.key == "ArrowUp" || event.key == "ArrowRight")
-	{
-		if(paddle_bottom.pos_x + paddle_bottom.height < canvas.width)
-			paddle_bottom.pos_x += Math.abs(canvas.width / 50);
-		if(paddle_bottom.pos_x + paddle_bottom.height > canvas.width)
-			paddle_bottom.pos_x = canvas.width - paddle_bottom.height;
-	}
-	else if (event.key == "ArrowDown" || event.key == "ArrowLeft")
-	{
-		if(paddle_bottom.pos_x > 0)
-			paddle_bottom.pos_x -= Math.abs(canvas.width / 50);
-		if(paddle_bottom.pos_x < 0)
-			paddle_bottom.pos_x = 0;
-	}
-}
+let prev_scores = new make_scores();
 
 const preSleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
@@ -317,7 +335,166 @@ function goal_animation_text (scorer)
 	}
 };
 
-let prev_scores = new make_scores();
+// MOVING PADDLES
+
+paddle_pace = Math.abs(canvas.width / 50);
+
+function key_down(event)
+{
+	// if(event.key == "ArrowUp" || event.key == "ArrowRight")    // if user plays online best option is ArrowUp and ArrowRight work the same,
+	// {															 and ArrowLeft and ArrowDown work the same 
+	// 	if(paddle_bottom.pos_x + paddle_bottom.height < canvas.width)
+	// 		paddle_bottom.pos_x += paddle_pace;
+	// 	if(paddle_bottom.pos_x + paddle_bottom.height > canvas.width)
+	// 		paddle_bottom.pos_x = canvas.width - paddle_bottom.height;
+	// }
+	// else if (event.key == "ArrowDown" || event.key == "ArrowLeft")
+	// {
+	// 	if(paddle_bottom.pos_x > 0)
+	// 		paddle_bottom.pos_x -= paddle_pace;
+	// 	if(paddle_bottom.pos_x < 0)
+	// 		paddle_bottom.pos_x = 0;
+	// }
+
+	// STOP GETTING CONFUSED
+
+	// ARROWS LEFT AND RIGHT MOVE THE TOP AND BOTTOM PADDLES, LEFT AND RIGHT
+	// ARROWS UP AND DOWN MOVE THE LEFT AND RIGHT PADDLES, UP AND DOWN
+
+	if(event.key == "ArrowLeft")
+	{
+		if(bottom_ai == false)
+		{
+			if(paddle_bottom.pos_x > 0)
+				paddle_bottom.pos_x -= paddle_pace;
+			if(paddle_bottom.pos_x < 0)
+				paddle_bottom.pos_x = 0;
+		}
+		if(top_ai == false)
+		{
+			if(paddle_bottom.pos_x > 0)
+				paddle_bottom.pos_x -= paddle_pace;
+			if(paddle_bottom.pos_x < 0)
+				paddle_bottom.pos_x = 0;
+		}
+	}
+	else if (event.key == "ArrowRight")
+	{
+		if(bottom_ai == false)
+		{
+			if(paddle_bottom.pos_x + paddle_bottom.height < canvas.width)
+				paddle_bottom.pos_x += paddle_pace;
+			if(paddle_bottom.pos_x + paddle_bottom.height > canvas.width)
+				paddle_bottom.pos_x = canvas.width - paddle_bottom.height;
+		}
+		if(top_ai == false)
+		{
+			if(paddle_top.pos_x + paddle_top.height < canvas.width)
+				paddle_top.pos_x += paddle_pace;
+			if(paddle_top.pos_x + paddle_top.height > canvas.width)
+				paddle_top.pos_x = canvas.width - paddle_top.height;
+		}
+	}
+	else if (event.key == "ArrowUp") // LEFT AND RIGHT
+	{
+		if(left_ai == false)
+		{
+			if(paddle_left.pos_y > 0)
+				paddle_left.pos_y -= paddle_pace;
+			if(paddle_left.pos_y < 0)
+				paddle_left.pos_y = 0;
+		}
+		if(right_ai == false)
+		{
+			if(paddle_right.pos_y > 0)
+				paddle_right.pos_y -= paddle_pace;
+			if(paddle_right.pos_y < 0)
+				paddle_right.pos_y = 0;
+		}
+	}
+	else if (event.key == "ArrowDown")
+	{
+		if(left_ai == false)
+		{
+			if(paddle_left.pos_y + paddle_left.height < canvas.height)
+				paddle_left.pos_y += paddle_pace;
+			if(paddle_left.pos_y + paddle_left.height > canvas.height)
+				paddle_left.pos_y = canvas.height - paddle_left.height;
+		}
+		if(right_ai == false)
+		{
+			if(paddle_right.pos_y + paddle_right.height < canvas.height)
+				paddle_right.pos_y += paddle_pace;
+			if(paddle_right.pos_y + paddle_right.height > canvas.height)
+				paddle_right.pos_y = canvas.height - paddle_right.height;
+		}
+
+	}
+}
+
+function simple_AI (ball)
+{
+	if(left_ai == true && ball.ball_velocity_x < 0) // ball is moving LEFT
+	{
+		if (ball.pos_y <= paddle_left.pos_y) // ball is above the paddle
+			paddle_left.pos_y -= paddle_pace;
+		if (ball.pos_y >= paddle_left.pos_y + paddle_left.height) // ball is below the paddle
+			paddle_left.pos_y += paddle_pace;
+	}
+	else if(right_ai == true && ball.ball_velocity_x > 0) // ball is moving RIGHT
+	{
+		if (ball.pos_y <= paddle_right.pos_y) // ball is above the paddle
+			paddle_right.pos_y -= paddle_pace;
+		if (ball.pos_y >= paddle_right.pos_y + paddle_right.height) // ball is below the paddle
+			paddle_right.pos_y += paddle_pace;
+	}
+	if(top_ai == true && ball.ball_velocity_y < 0) // ball is moving TOP
+	{
+		if (ball.pos_x <= paddle_top.pos_x) // ball is left of the paddle
+			paddle_top.pos_x -= paddle_pace;
+		if (ball.pos_x >= paddle_top.pos_x + paddle_top.height) // ball is below the paddle
+			paddle_top.pos_x += paddle_pace;
+	}
+	else if(bottom_ai == true && ball.ball_velocity_y > 0) // ball is moving BOTTOM
+	{
+		if (ball.pos_x <= paddle_bottom.pos_x) // ball is left of the paddle
+			paddle_bottom.pos_x -= paddle_pace;
+		if (ball.pos_x >= paddle_bottom.pos_x + paddle_bottom.height) // ball is below the paddle
+			paddle_bottom.pos_x += paddle_pace;
+	}
+}
+
+function medium_AI (ball)
+{
+	if(left_ai == true && ball.ball_velocity_x < 0) // ball is moving LEFT
+	{
+		if (ball.pos_y <= paddle_left.pos_y) // ball is above the paddle
+			paddle_left.pos_y -= paddle_pace;
+		if (ball.pos_y >= paddle_left.pos_y + paddle_left.height) // ball is below the paddle
+			paddle_left.pos_y += paddle_pace;
+	}
+	else if(right_ai == true && ball.ball_velocity_x > 0) // ball is moving RIGHT
+	{
+		if (ball.pos_y <= paddle_right.pos_y) // ball is above the paddle
+			paddle_right.pos_y -= paddle_pace;
+		if (ball.pos_y >= paddle_right.pos_y + paddle_right.height) // ball is below the paddle
+			paddle_right.pos_y += paddle_pace;
+	}
+	if(top_ai == true && ball.ball_velocity_y < 0) // ball is moving TOP
+	{
+		if (ball.pos_x <= paddle_top.pos_x) // ball is left of the paddle
+			paddle_top.pos_x -= paddle_pace;
+		if (ball.pos_x >= paddle_top.pos_x + paddle_top.height) // ball is below the paddle
+			paddle_top.pos_x += paddle_pace;
+	}
+	else if(bottom_ai == true && ball.ball_velocity_y > 0) // ball is moving BOTTOM
+	{
+		if (ball.pos_x <= paddle_bottom.pos_x) // ball is left of the paddle
+			paddle_bottom.pos_x -= paddle_pace;
+		if (ball.pos_x >= paddle_bottom.pos_x + paddle_bottom.height) // ball is below the paddle
+			paddle_bottom.pos_x += paddle_pace;
+	}
+}
 
 gameLoop = async () =>
 {
@@ -342,22 +519,25 @@ gameLoop = async () =>
 		}
 		ball = new make_ball();
 		for (key in paddles)
-		paddles[key].init_position(paddles[key].player);
+			paddles[key].init_position(paddles[key].player);
 		first = false;
 		isGoal = false;
 		last_touch = "none";
 		for(key in scores.goals)
 			prev_scores.goals[key] = scores.goals[key];
 	}
+	simple_AI(ball);
 	scores.draw_scores();
 	ball.move_ball();
 	ball.draw_ball();
 	if(colliding_ball_paddle(ball, paddles) == true)
 	{
-		ball.ball_velocity_x += 0.1 * ball.ball_velocity_x;
-		ball.ball_velocity_y += 0.1 * ball.ball_velocity_y;
-		requestAnimationFrame(gameLoop);
-		return ;
+		ball.speed_up();
+		ball.move_ball();
+		while(colliding_ball_paddle(ball, paddles) == true)
+			ball.reposition_ball_above_paddle(last_touch);
+		requestAnimationFrame(gameLoop); // handles case where it hits both the goal and the paddle at the same time
+		return ; // return required for the above case or game speed is doubled
 	}
 	isGoal = colliding_goal(ball);
 	requestAnimationFrame(gameLoop);
@@ -370,6 +550,3 @@ document.addEventListener('keydown', function(event) {
 });
 
 requestAnimationFrame(gameLoop);
-
-
-
