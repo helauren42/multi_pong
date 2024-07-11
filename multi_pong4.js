@@ -147,6 +147,49 @@ function make_scores()
 			ctx.fillText(this.goals[key], this.pos_x[key], this.pos_y, 100);
 		}
 	}
+	this.draw_big_scores1 = function(prev_scores)
+	{
+		for (key in this.goals)
+		{
+			ctx.fillStyle = this.colour[key];
+			console.log("prev_scores.goals[] ", key, prev_scores.goals[key]);
+			if(prev_scores.goals[key] == this.goals[key])
+			{
+				ctx.font = `${canvas.width / 20}px Orbitron`;
+				console.log(`Font Size (if): ${canvas.width / 20}px`);
+				ctx.fillText(this.goals[key], this.pos_x[key], this.pos_y, 100);
+			}
+			else
+			{
+				ctx.font = `${canvas.width / 15}px Orbitron`;
+				console.log(`Font Size (else): ${canvas.width / 15}px`);
+				ctx.fillText(prev_scores.goals[key], this.pos_x[key], this.pos_y, 100);
+			}
+		}
+	}
+	this.draw_big_scores2 = function(prev_scores)
+	{
+		for (key in this.goals)
+		{
+			if(key == "none")
+				return ;
+			ctx.fillStyle = this.colour[key];
+			console.log(key, this.goals[key]);
+			console.log(key, prev_scores.goals[key]);
+			if(prev_scores.goals[key] == this.goals[key])
+			{
+				ctx.font = `${canvas.width / 20}px Orbitron`;
+				console.log(`Font Size (if): ${canvas.width / 20}px`);
+				ctx.fillText(this.goals[key], this.pos_x[key], this.pos_y, 100);
+			}
+			else
+			{
+				ctx.font = `${canvas.width / 15}px Orbitron`;
+				console.log(`Font Size (else): ${canvas.width / 15}px`);
+				ctx.fillText(this.goals[key], this.pos_x[key], this.pos_y, 200);
+			}
+		}
+	}
 }
 
 function colliding_goal(ball)
@@ -256,12 +299,11 @@ function key_down(event)
 const preSleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
 const realSleep = async (ms) => {
-	console.log('Step 1 - Called');
 	await preSleep(ms);
-	console.log('Step 2 - Called');
 };
 
-const goal_animation_text = async (scorer) => {
+function goal_animation_text (scorer)
+{
 	ctx.clearRect(0, 0, canvas.width, canvas.height);
 	if (scorer !== "none") {
 		ctx.fillStyle = scores.colour[scorer];
@@ -275,6 +317,8 @@ const goal_animation_text = async (scorer) => {
 	}
 };
 
+let prev_scores = new make_scores();
+
 gameLoop = async () =>
 {
 	ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -282,20 +326,29 @@ gameLoop = async () =>
 		paddles[key].draw_paddle();
 	if(isGoal == true || first == true)
 	{
-		goal_animation_text(last_touch);
-		prev_scores.draw_scores();
-		await realSleep(300);
-		goal_animation_bigger();
-		await realSleep();
-		prev_scores.draw_scores();
+		if(first != true)
+		{
+			goal_animation_text(last_touch);
+			prev_scores.draw_scores();
+			await realSleep(300);
+	
+			goal_animation_text(last_touch);
+			scores.draw_big_scores1(prev_scores);
+			await realSleep(500);
+	
+			goal_animation_text(last_touch);
+			scores.draw_big_scores2(prev_scores);
+			await realSleep(500);
+		}
 		ball = new make_ball();
 		for (key in paddles)
-			paddles[key].init_position(paddles[key].player);
+		paddles[key].init_position(paddles[key].player);
 		first = false;
 		isGoal = false;
 		last_touch = "none";
+		for(key in scores.goals)
+			prev_scores.goals[key] = scores.goals[key];
 	}
-	let prev_scores = Object.assign({}, scores);
 	scores.draw_scores();
 	ball.move_ball();
 	ball.draw_ball();
