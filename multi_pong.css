@@ -21,3 +21,8 @@ body {
 	border-width: 2px;
 	border-color: azure;
 }
+
+.Buttons {
+	border-style: solid;
+	border-color:rgb(10, 10, 92);
+}

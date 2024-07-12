@@ -5,14 +5,8 @@
 
 // major improvements on the lagging and sticking to the paddle after a fast movement but can still happen
 
-// 
-
 // const INIT VARIBALES
 
-const net_color = "gray";
-const score_color = "green";
-const ball_color = "green";
-const bounce_color = "greenyellow";
 const canvas = document.getElementById("canvas");
 const ctx = canvas.getContext("2d");
 
@@ -25,9 +19,10 @@ const left_ai = true;
 const right_ai = false;
 const top_ai = true;
 const bottom_ai = true;
+
 // const single_player = false;
 
-// INIT VARIABLES WITH SIZES
+// INIT CANVAS AND WINDOW
 
 let format;
 
@@ -43,6 +38,76 @@ else
 	canvas.height=canvas.width;
 	format = "height";
 }
+
+// BUTTONS
+
+// const btn = document.createElement('button');
+// btn.innerText = "BUTTON";
+// document.body.appendChild(btn);
+
+let button_up = document.getElementById("button_up");
+let button_down = document.getElementById("button_down"); // tried putting them both in the same class and using getElementByClassName(), but it somehow doesn't work
+
+let font_size;
+let position;
+
+if(format == "height")
+{
+	position = (window.innerWidth - canvas.width) / 6;
+	font_size = canvas.height / 60;
+
+	[button_up, button_down].forEach(button => {
+		button.style.backgroundColor = 'rgb(2, 2, 27)';
+		button.style.color = 'white';
+		button.style.cursor = 'pointer';
+		button.style.margin = '5px 0'; // somehow modifying border-width and some other border params doesn't work here, so it's in the css file
+
+		button.style.position = "absolute";
+
+		button.style.left = position;
+
+		button.style.height = "10%";
+		button.style.width = "5%";
+		button.style.fontSize = font_size;
+	});
+
+	button_up.style.top = "45%";
+	button_up.innerText = "UP / RIGHT";
+
+	button_down.style.top = "55%";
+	button_down.innerText = "DOWN / LEFT";
+}
+
+if(format == "width")
+{
+	position = (window.innerHeight - canvas.height) / 6;
+	font_size = canvas.height / 60;
+
+	[button_up, button_down].forEach(button => {
+		button.style.backgroundColor = 'rgb(2, 2, 27)';
+		button.style.color = 'white';
+		button.style.cursor = 'pointer';
+		button.style.margin = '5px 0';
+
+		button.style.position = "absolute";
+
+		button.style.bottom = position;
+
+		button.style.height = "5%";
+		button.style.width = "10%";
+		button.style.fontSize = font_size;
+	});
+
+	button_down.style.right = "45%";
+	button_down.innerText = "DOWN / LEFT";
+
+	button_up.style.right = "55%";
+	button_up.innerText = "UP / RIGHT";
+}
+
+// button_up
+
+// FUNCTION constructors
 
 const ball_velocity_div = 500;
 
