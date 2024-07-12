@@ -105,6 +105,70 @@ if(format == "width")
 	button_up.innerText = "UP / RIGHT";
 }
 
+button_up.onclick = function ()
+{
+	if(bottom_ai == false)
+	{
+		if(paddle_bottom.pos_x + paddle_bottom.height < canvas.width)
+			paddle_bottom.pos_x += paddle_pace;
+		if(paddle_bottom.pos_x + paddle_bottom.height > canvas.width)
+			paddle_bottom.pos_x = canvas.width - paddle_bottom.height;
+	}
+	if(top_ai == false)
+	{
+		if(paddle_top.pos_x + paddle_top.height < canvas.width)
+			paddle_top.pos_x += paddle_pace;
+		if(paddle_top.pos_x + paddle_top.height > canvas.width)
+			paddle_top.pos_x = canvas.width - paddle_top.height;
+	}
+	if(left_ai == false)
+	{
+		if(paddle_left.pos_y > 0)
+			paddle_left.pos_y -= paddle_pace;
+		if(paddle_left.pos_y < 0)
+			paddle_left.pos_y = 0;
+	}
+	if(right_ai == false)
+	{
+		if(paddle_right.pos_y > 0)
+			paddle_right.pos_y -= paddle_pace;
+		if(paddle_right.pos_y < 0)
+			paddle_right.pos_y = 0;
+	}
+}
+
+button_down.onclick = function ()
+{
+	if(bottom_ai == false)
+	{
+		if(paddle_bottom.pos_x > 0)
+			paddle_bottom.pos_x -= paddle_pace;
+		if(paddle_bottom.pos_x < 0)
+			paddle_bottom.pos_x = 0;
+	}
+	if(top_ai == false)
+	{
+		if(paddle_bottom.pos_x > 0)
+			paddle_bottom.pos_x -= paddle_pace;
+		if(paddle_bottom.pos_x < 0)
+			paddle_bottom.pos_x = 0;
+	}
+	if(left_ai == false)
+	{
+		if(paddle_left.pos_y + paddle_left.height < canvas.height)
+			paddle_left.pos_y += paddle_pace;
+		if(paddle_left.pos_y + paddle_left.height > canvas.height)
+			paddle_left.pos_y = canvas.height - paddle_left.height;
+	}
+	if(right_ai == false)
+	{
+		if(paddle_right.pos_y + paddle_right.height < canvas.height)
+			paddle_right.pos_y += paddle_pace;
+		if(paddle_right.pos_y + paddle_right.height > canvas.height)
+			paddle_right.pos_y = canvas.height - paddle_right.height;
+	}
+}
+
 // button_up
 
 // FUNCTION constructors
