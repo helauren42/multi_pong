@@ -16,9 +16,9 @@ const player_left_colour = "green";
 const player_right_colour = "purple";
 
 const left_ai = true;
-const right_ai = false;
+const right_ai = true;
 const top_ai = true;
-const bottom_ai = true;
+const bottom_ai = false;
 
 // const single_player = false;
 
@@ -169,8 +169,6 @@ button_down.onclick = function ()
 	}
 }
 
-// button_up
-
 // FUNCTION constructors
 
 const ball_velocity_div = 500;
@@ -227,7 +225,6 @@ function make_ball () {
 	}
 	this.reposition_ball_above_paddle = function(last_touch)
 	{
-		console.log("Before: ", this);
 		if(last_touch == "left")
 			this.pos_x += Math.abs(this.ball_velocity_x);
 		if(last_touch == "right")
@@ -236,7 +233,6 @@ function make_ball () {
 			this.pos_y += Math.abs(this.ball_velocity_y);
 		if(last_touch == "bottom")
 			this.pos_y -= Math.abs(this.ball_velocity_y);
-		console.log("After: ", this);
 	}
 	this.setVelocity(this.direction);
 }
@@ -316,17 +312,14 @@ function make_scores()
 		for (key in this.goals)
 		{
 			ctx.fillStyle = this.colour[key];
-			console.log("prev_scores.goals[] ", key, prev_scores.goals[key]);
 			if(prev_scores.goals[key] == this.goals[key])
 			{
 				ctx.font = `${canvas.width / 20}px Orbitron`;
-				console.log(`Font Size (if): ${canvas.width / 20}px`);
 				ctx.fillText(this.goals[key], this.pos_x[key], this.pos_y, 100);
 			}
 			else
 			{
 				ctx.font = `${canvas.width / 15}px Orbitron`;
-				console.log(`Font Size (else): ${canvas.width / 15}px`);
 				ctx.fillText(prev_scores.goals[key], this.pos_x[key], this.pos_y, 100);
 			}
 		}
@@ -338,18 +331,14 @@ function make_scores()
 			if(key == "none")
 				return ;
 			ctx.fillStyle = this.colour[key];
-			console.log(key, this.goals[key]);
-			console.log(key, prev_scores.goals[key]);
 			if(prev_scores.goals[key] == this.goals[key])
 			{
 				ctx.font = `${canvas.width / 20}px Orbitron`;
-				console.log(`Font Size (if): ${canvas.width / 20}px`);
 				ctx.fillText(this.goals[key], this.pos_x[key], this.pos_y, 100);
 			}
 			else
 			{
 				ctx.font = `${canvas.width / 15}px Orbitron`;
-				console.log(`Font Size (else): ${canvas.width / 15}px`);
 				ctx.fillText(this.goals[key], this.pos_x[key], this.pos_y, 200);
 			}
 		}
@@ -466,99 +455,139 @@ function goal_animation_text (scorer)
 
 // MOVING PADDLES
 
-paddle_pace = Math.abs(canvas.width / 50);
+paddle_pace = Math.abs(canvas.width / 110);
+
+let bottom_direction = 0;
+let top_direction = 0;
+let left_direction = 0;
+let right_direction = 0;
+
+function key_up(event)
+{
+	if(event.key == "ArrowUp" || event.key == "ArrowRight")
+	{
+		if(bottom_ai == false)
+			bottom_direction = 0;
+		if(top_ai == false)
+			top_direction = 0;
+		if(left_ai == false)
+			left_direction = 0;
+		if(right_ai == false)
+			right_direction = 0;
+	}
+	else if (event.key == "ArrowDown" || event.key == "ArrowLeft")
+	{
+		if(bottom_ai == false)
+			bottom_direction = 0;
+		if(top_ai == false)
+			top_direction = 0;
+		if(left_ai == false)
+			left_direction = 0;
+		if(right_ai == false)
+			right_direction = 0;
+	}
+}
+
 
 function key_down(event)
 {
-	// if(event.key == "ArrowUp" || event.key == "ArrowRight")    // if user plays online best option is ArrowUp and ArrowRight work the same,
-	// {															 and ArrowLeft and ArrowDown work the same 
-	// 	if(paddle_bottom.pos_x + paddle_bottom.height < canvas.width)
-	// 		paddle_bottom.pos_x += paddle_pace;
-	// 	if(paddle_bottom.pos_x + paddle_bottom.height > canvas.width)
-	// 		paddle_bottom.pos_x = canvas.width - paddle_bottom.height;
-	// }
-	// else if (event.key == "ArrowDown" || event.key == "ArrowLeft")
-	// {
-	// 	if(paddle_bottom.pos_x > 0)
-	// 		paddle_bottom.pos_x -= paddle_pace;
-	// 	if(paddle_bottom.pos_x < 0)
-	// 		paddle_bottom.pos_x = 0;
-	// }
+	if(event.key == "ArrowUp" || event.key == "ArrowRight")    // if user plays online best option is ArrowUp and ArrowRight work the same,
+	{															// and ArrowLeft and ArrowDown work the same 
+		if(bottom_ai == false)
+			bottom_direction = 1;
+		if(top_ai == false)
+			top_direction = 1;
+		if(left_ai == false)
+			left_direction = 1;
+		if(right_ai == false)
+			right_direction = 1;
+	}
+	else if (event.key == "ArrowDown" || event.key == "ArrowLeft")
+	{
+		if(bottom_ai == false)
+			bottom_direction = -1;
+		if(top_ai == false)
+			top_direction = -1;
+		if(left_ai == false)
+			left_direction = -1;
+		if(right_ai == false)
+			right_direction = -1;
+	}
 
-	// STOP GETTING CONFUSED
+	// HENRI STOP GETTING CONFUSED
 
 	// ARROWS LEFT AND RIGHT MOVE THE TOP AND BOTTOM PADDLES, LEFT AND RIGHT
 	// ARROWS UP AND DOWN MOVE THE LEFT AND RIGHT PADDLES, UP AND DOWN
 
-	if(event.key == "ArrowLeft")
-	{
-		if(bottom_ai == false)
-		{
-			if(paddle_bottom.pos_x > 0)
-				paddle_bottom.pos_x -= paddle_pace;
-			if(paddle_bottom.pos_x < 0)
-				paddle_bottom.pos_x = 0;
-		}
-		if(top_ai == false)
-		{
-			if(paddle_bottom.pos_x > 0)
-				paddle_bottom.pos_x -= paddle_pace;
-			if(paddle_bottom.pos_x < 0)
-				paddle_bottom.pos_x = 0;
-		}
-	}
-	else if (event.key == "ArrowRight")
-	{
-		if(bottom_ai == false)
-		{
-			if(paddle_bottom.pos_x + paddle_bottom.height < canvas.width)
-				paddle_bottom.pos_x += paddle_pace;
-			if(paddle_bottom.pos_x + paddle_bottom.height > canvas.width)
-				paddle_bottom.pos_x = canvas.width - paddle_bottom.height;
-		}
-		if(top_ai == false)
-		{
-			if(paddle_top.pos_x + paddle_top.height < canvas.width)
-				paddle_top.pos_x += paddle_pace;
-			if(paddle_top.pos_x + paddle_top.height > canvas.width)
-				paddle_top.pos_x = canvas.width - paddle_top.height;
-		}
-	}
-	else if (event.key == "ArrowUp") // LEFT AND RIGHT
-	{
-		if(left_ai == false)
-		{
-			if(paddle_left.pos_y > 0)
-				paddle_left.pos_y -= paddle_pace;
-			if(paddle_left.pos_y < 0)
-				paddle_left.pos_y = 0;
-		}
-		if(right_ai == false)
-		{
-			if(paddle_right.pos_y > 0)
-				paddle_right.pos_y -= paddle_pace;
-			if(paddle_right.pos_y < 0)
-				paddle_right.pos_y = 0;
-		}
-	}
-	else if (event.key == "ArrowDown")
-	{
-		if(left_ai == false)
-		{
-			if(paddle_left.pos_y + paddle_left.height < canvas.height)
-				paddle_left.pos_y += paddle_pace;
-			if(paddle_left.pos_y + paddle_left.height > canvas.height)
-				paddle_left.pos_y = canvas.height - paddle_left.height;
-		}
-		if(right_ai == false)
-		{
-			if(paddle_right.pos_y + paddle_right.height < canvas.height)
-				paddle_right.pos_y += paddle_pace;
-			if(paddle_right.pos_y + paddle_right.height > canvas.height)
-				paddle_right.pos_y = canvas.height - paddle_right.height;
-		}
+	// if(event.key == "ArrowLeft")
+	// {
+	// 	if(bottom_ai == false)
+	// 	{
+	// 		if(paddle_bottom.pos_x > 0)
+	// 			paddle_bottom.pos_x -= paddle_pace;
+	// 		if(paddle_bottom.pos_x < 0)
+	// 			paddle_bottom.pos_x = 0;
+	// 	}
+	// 	if(top_ai == false)
+	// 	{
+	// 		if(paddle_bottom.pos_x > 0)
+	// 			paddle_bottom.pos_x -= paddle_pace;
+	// 		if(paddle_bottom.pos_x < 0)
+	// 			paddle_bottom.pos_x = 0;
+	// 	}
+	// }
+	// else if (event.key == "ArrowRight")
+	// {
+	// 	if(bottom_ai == false)
+	// 	{
+	// 		if(paddle_bottom.pos_x + paddle_bottom.height < canvas.width)
+	// 			paddle_bottom.pos_x += paddle_pace;
+	// 		if(paddle_bottom.pos_x + paddle_bottom.height > canvas.width)
+	// 			paddle_bottom.pos_x = canvas.width - paddle_bottom.height;
+	// 	}
+	// 	if(top_ai == false)
+	// 	{
+	// 		if(paddle_top.pos_x + paddle_top.height < canvas.width)
+	// 			paddle_top.pos_x += paddle_pace;
+	// 		if(paddle_top.pos_x + paddle_top.height > canvas.width)
+	// 			paddle_top.pos_x = canvas.width - paddle_top.height;
+	// 	}
+	// }
+	// else if (event.key == "ArrowUp") // LEFT AND RIGHT
+	// {
+	// 	if(left_ai == false)
+	// 	{
+	// 		if(paddle_left.pos_y > 0)
+	// 			paddle_left.pos_y -= paddle_pace;
+	// 		if(paddle_left.pos_y < 0)
+	// 			paddle_left.pos_y = 0;
+	// 	}
+	// 	if(right_ai == false)
+	// 	{
+	// 		if(paddle_right.pos_y > 0)
+	// 			paddle_right.pos_y -= paddle_pace;
+	// 		if(paddle_right.pos_y < 0)
+	// 			paddle_right.pos_y = 0;
+	// 	}
+	// }
+	// else if (event.key == "ArrowDown")
+	// {
+	// 	if(left_ai == false)
+	// 	{
+	// 		if(paddle_left.pos_y + paddle_left.height < canvas.height)
+	// 			paddle_left.pos_y += paddle_pace;
+	// 		if(paddle_left.pos_y + paddle_left.height > canvas.height)
+	// 			paddle_left.pos_y = canvas.height - paddle_left.height;
+	// 	}
+	// 	if(right_ai == false)
+	// 	{
+	// 		if(paddle_right.pos_y + paddle_right.height < canvas.height)
+	// 			paddle_right.pos_y += paddle_pace;
+	// 		if(paddle_right.pos_y + paddle_right.height > canvas.height)
+	// 			paddle_right.pos_y = canvas.height - paddle_right.height;
+	// 	}
 
-	}
+	// }
 }
 
 function simple_AI (ball)
@@ -593,35 +622,46 @@ function simple_AI (ball)
 	}
 }
 
-function medium_AI (ball)
+function move_paddle()
 {
-	if(left_ai == true && ball.ball_velocity_x < 0) // ball is moving LEFT
+	if(bottom_direction != 0)
 	{
-		if (ball.pos_y <= paddle_left.pos_y) // ball is above the paddle
-			paddle_left.pos_y -= paddle_pace;
-		if (ball.pos_y >= paddle_left.pos_y + paddle_left.height) // ball is below the paddle
-			paddle_left.pos_y += paddle_pace;
+		console.log(bottom_direction);
+		console.log(paddle_bottom);
+		if(paddle_bottom.pos_x + paddle_bottom.height <= canvas.width)
+			paddle_bottom.pos_x += bottom_direction * paddle_pace;
+		if(paddle_bottom.pos_x + paddle_bottom.height > canvas.width)
+			paddle_bottom.pos_x = canvas.width - paddle_bottom.height;
+		if(paddle_bottom.pos_x < 0)
+			paddle_bottom.pos_x = 0;
+		console.log(paddle_bottom);
 	}
-	else if(right_ai == true && ball.ball_velocity_x > 0) // ball is moving RIGHT
+	if(top_direction != 0)
 	{
-		if (ball.pos_y <= paddle_right.pos_y) // ball is above the paddle
-			paddle_right.pos_y -= paddle_pace;
-		if (ball.pos_y >= paddle_right.pos_y + paddle_right.height) // ball is below the paddle
-			paddle_right.pos_y += paddle_pace;
+		if(paddle_top.pos_x + paddle_top.height <= canvas.width)
+			paddle_top.pos_x += top_direction * paddle_pace;
+		if(paddle_top.pos_x + paddle_top.height > canvas.width)
+			paddle_top.pos_x = canvas.width - paddle_top.height;
+		if(paddle_top.pos_x < 0)
+			paddle_top.pos_x = 0;
 	}
-	if(top_ai == true && ball.ball_velocity_y < 0) // ball is moving TOP
+	if(left_direction != 0)
 	{
-		if (ball.pos_x <= paddle_top.pos_x) // ball is left of the paddle
-			paddle_top.pos_x -= paddle_pace;
-		if (ball.pos_x >= paddle_top.pos_x + paddle_top.height) // ball is below the paddle
-			paddle_top.pos_x += paddle_pace;
+		if(paddle_left.pos_y + paddle_left.height <= canvas.width)
+			paddle_left.pos_y -= left_direction * paddle_pace;
+		if(paddle_left.pos_y + paddle_left.height > canvas.width)
+			paddle_left.pos_y = canvas.width - paddle_left.height;
+		if(paddle_left.pos_y < 0)
+			paddle_left.pos_y = 0;
 	}
-	else if(bottom_ai == true && ball.ball_velocity_y > 0) // ball is moving BOTTOM
+	if(right_direction != 0)
 	{
-		if (ball.pos_x <= paddle_bottom.pos_x) // ball is left of the paddle
-			paddle_bottom.pos_x -= paddle_pace;
-		if (ball.pos_x >= paddle_bottom.pos_x + paddle_bottom.height) // ball is below the paddle
-			paddle_bottom.pos_x += paddle_pace;
+		if(paddle_right.pos_y + paddle_right.height <= canvas.width)
+			paddle_right.pos_y -= right_direction * paddle_pace;
+		if(paddle_right.pos_y + paddle_right.height > canvas.width)
+			paddle_right.pos_y = canvas.width - paddle_right.height;
+		if(paddle_right.pos_y < 0)
+			paddle_right.pos_y = 0;
 	}
 }
 
@@ -634,6 +674,7 @@ gameLoop = async () =>
 	{
 		if(first != true)
 		{
+			debugger;
 			goal_animation_text(last_touch);
 			prev_scores.draw_scores();
 			await realSleep(300);
@@ -657,6 +698,7 @@ gameLoop = async () =>
 	}
 	simple_AI(ball);
 	scores.draw_scores();
+	move_paddle();
 	ball.move_ball();
 	ball.draw_ball();
 	if(colliding_ball_paddle(ball, paddles) == true)
@@ -675,6 +717,11 @@ gameLoop = async () =>
 
 document.addEventListener('keydown', function(event) {
 	key_down(event);
+	return ;
+});
+
+document.addEventListener('keyup', function(event) {
+	key_up(event);
 	return ;
 });
 
