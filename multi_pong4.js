@@ -40,7 +40,7 @@ const realSleep = async (ms) => {
 
 function init ()
 {
-	paddle_pace = Math.abs(canvas.width / 110);
+	paddle_pace = Math.abs(canvas.width / 60);
 	canvas_old_width = canvas.width;
 	canvas_old_height = canvas.height;
 	if(window.innerWidth <= window.innerHeight) {
