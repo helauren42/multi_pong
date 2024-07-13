@@ -1,13 +1,8 @@
-// BUGS :
-// super rare and super hard to replicate but there is a case where a player scores an own goal (ball hits his paddle and goes in goal, 
-// tho it might be that it hit the paddle and the goal at the same time and it counts this as a player's goal, happend when moving fast as well
-// not just because it hit the paddle and the goal at the same time
-
-// major improvements on the lagging and sticking to the paddle after a fast movement but can still happen
-
 // const INIT VARIBALES
 
 const canvas = document.getElementById("canvas");
+let	canvas_old_width = null;
+let	canvas_old_height = null;
 const ctx = canvas.getContext("2d");
 
 const player_top_colour = "blue";
@@ -20,167 +15,195 @@ const right_ai = true;
 const top_ai = true;
 const bottom_ai = false;
 
-// const single_player = false;
-
-// INIT CANVAS AND WINDOW
-
-let format;
-
-if(window.innerWidth <= window.innerHeight)
-{
-	canvas.width=window.innerWidth - window.innerWidth / 20;
-	canvas.height=canvas.width;
-	format = "width";
-}
-else
-{
-	canvas.width=window.innerHeight - window.innerHeight / 20;
-	canvas.height=canvas.width;
-	format = "height";
-}
-
-// BUTTONS
-
-// const btn = document.createElement('button');
-// btn.innerText = "BUTTON";
-// document.body.appendChild(btn);
+const ball_velocity_div = 500;
 
 let button_up = document.getElementById("button_up");
 let button_down = document.getElementById("button_down"); // tried putting them both in the same class and using getElementByClassName(), but it somehow doesn't work
 
+let format;
+
 let font_size;
 let position;
+let paddle_pace;
+let	last_touch = "none";
+let	conceder = "none";
 
-if(format == "height")
+// const single_player = false;
+
+// INIT CANVAS AND WINDOW
+
+const preSleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
+const realSleep = async (ms) => {
+	await preSleep(ms);
+};
+
+function init ()
 {
-	position = (window.innerWidth - canvas.width) / 6;
-	font_size = canvas.height / 60;
-
-	[button_up, button_down].forEach(button => {
-		button.style.backgroundColor = 'rgb(2, 2, 27)';
-		button.style.color = 'white';
-		button.style.cursor = 'pointer';
-		button.style.margin = '5px 0'; // somehow modifying border-width and some other border params doesn't work here, so it's in the css file
-
-		button.style.position = "absolute";
-
-		button.style.left = position;
-
-		button.style.height = "10%";
-		button.style.width = "5%";
-		button.style.fontSize = font_size;
-	});
-
-	button_up.style.top = "45%";
-	button_up.innerText = "UP / RIGHT";
-
-	button_down.style.top = "55%";
-	button_down.innerText = "DOWN / LEFT";
-}
-
-if(format == "width")
-{
-	position = (window.innerHeight - canvas.height) / 6;
-	font_size = canvas.height / 60;
-
-	[button_up, button_down].forEach(button => {
-		button.style.backgroundColor = 'rgb(2, 2, 27)';
-		button.style.color = 'white';
-		button.style.cursor = 'pointer';
-		button.style.margin = '5px 0';
-
-		button.style.position = "absolute";
-
-		button.style.bottom = position;
-
-		button.style.height = "5%";
-		button.style.width = "10%";
-		button.style.fontSize = font_size;
-	});
-
-	button_down.style.right = "45%";
-	button_down.innerText = "DOWN / LEFT";
-
-	button_up.style.right = "55%";
-	button_up.innerText = "UP / RIGHT";
-}
-
-button_up.onclick = function ()
-{
-	if(bottom_ai == false)
-	{
-		if(paddle_bottom.pos_x + paddle_bottom.height < canvas.width)
-			paddle_bottom.pos_x += paddle_pace;
-		if(paddle_bottom.pos_x + paddle_bottom.height > canvas.width)
-			paddle_bottom.pos_x = canvas.width - paddle_bottom.height;
+	paddle_pace = Math.abs(canvas.width / 110);
+	canvas_old_width = canvas.width;
+	canvas_old_height = canvas.height;
+	if(window.innerWidth <= window.innerHeight) {
+		canvas.width=window.innerWidth - window.innerWidth / 20;
+		canvas.height=canvas.width;
+		format = "width";
 	}
-	if(top_ai == false)
-	{
-		if(paddle_top.pos_x + paddle_top.height < canvas.width)
-			paddle_top.pos_x += paddle_pace;
-		if(paddle_top.pos_x + paddle_top.height > canvas.width)
-			paddle_top.pos_x = canvas.width - paddle_top.height;
+	else {
+		canvas.width=window.innerHeight - window.innerHeight / 20;
+		canvas.height=canvas.width;
+		format = "height";
 	}
-	if(left_ai == false)
-	{
-		if(paddle_left.pos_y > 0)
-			paddle_left.pos_y -= paddle_pace;
-		if(paddle_left.pos_y < 0)
-			paddle_left.pos_y = 0;
+	if(format == "height") {
+		console.log("here height");
+		position = (window.innerWidth - canvas.width) / 6;
+		font_size = canvas.height / 60;
+	
+		[button_up, button_down].forEach(button => {
+			button.style.backgroundColor = 'rgb(2, 2, 27)';
+			button.style.color = 'white';
+			button.style.cursor = 'pointer';
+			button.style.margin = '5px 0'; // somehow modifying border-width and some other border params doesn't work here, so it's in the css file
+	
+			button.style.position = "absolute";
+	
+			button.style.left = position;
+	
+			button.style.height = "10%";
+			button.style.width = "5%";
+			button.style.fontSize = font_size;
+		});
+	
+		button_up.style.top = "45%";
+		button_up.innerText = "UP / RIGHT";
+	
+		button_down.style.top = "55%";
+		button_down.innerText = "DOWN / LEFT";
 	}
-	if(right_ai == false)
-	{
-		if(paddle_right.pos_y > 0)
-			paddle_right.pos_y -= paddle_pace;
-		if(paddle_right.pos_y < 0)
-			paddle_right.pos_y = 0;
+	
+	if(format == "width") {
+		console.log("here width");
+		position = (window.innerHeight - canvas.height) / 6;
+		font_size = canvas.height / 60;
+
+		[button_up, button_down].forEach(button => {
+			button.style.backgroundColor = 'rgb(2, 2, 27)';
+			button.style.color = 'white';
+			button.style.cursor = 'pointer';
+			button.style.margin = '5px 0';
+	
+			button.style.position = "absolute";
+	
+			button.style.bottom = position;
+	
+			button.style.height = "5%";
+			button.style.width = "10%";
+			button.style.fontSize = font_size;
+		});
+	
+		button_down.style.right = "45%";
+		button_down.innerText = "DOWN / LEFT";
+	
+		button_up.style.right = "55%";
+		button_up.innerText = "UP / RIGHT";
 	}
 }
 
-button_down.onclick = function ()
-{
-	if(bottom_ai == false)
-	{
-		if(paddle_bottom.pos_x > 0)
-			paddle_bottom.pos_x -= paddle_pace;
-		if(paddle_bottom.pos_x < 0)
-			paddle_bottom.pos_x = 0;
-	}
-	if(top_ai == false)
-	{
-		if(paddle_bottom.pos_x > 0)
-			paddle_bottom.pos_x -= paddle_pace;
-		if(paddle_bottom.pos_x < 0)
-			paddle_bottom.pos_x = 0;
-	}
-	if(left_ai == false)
-	{
-		if(paddle_left.pos_y + paddle_left.height < canvas.height)
-			paddle_left.pos_y += paddle_pace;
-		if(paddle_left.pos_y + paddle_left.height > canvas.height)
-			paddle_left.pos_y = canvas.height - paddle_left.height;
-	}
-	if(right_ai == false)
-	{
-		if(paddle_right.pos_y + paddle_right.height < canvas.height)
-			paddle_right.pos_y += paddle_pace;
-		if(paddle_right.pos_y + paddle_right.height > canvas.height)
-			paddle_right.pos_y = canvas.height - paddle_right.height;
-	}
-}
+init();
 
 // FUNCTION constructors
 
-const ball_velocity_div = 500;
+let ball;
+let paddle_left = new make_paddle("left");
+let paddle_right = new make_paddle("right");
+let paddle_top = new make_paddle("top");
+let paddle_bottom = new make_paddle("bottom");
+let paddles = {left: paddle_left, right: paddle_right, top: paddle_top, bottom:paddle_bottom};
+let isGoal = false;
+let	first = true;
+let empty_score = {left: 0, right: 0, top: 0, bottom: 0}
+let scores = new make_scores(empty_score);
+let prev_scores = new make_scores(empty_score);
 
-function make_ball () {
+function make_paddle(player) {
+	this.player = player,
+	this.width = canvas.width / 75;
+	this.height = canvas.height / 8;
+
+	this.init_position = function(player)
+	{
+		if(player == "top")
+		{
+			this.pos_x = canvas.width / 2 - this.height / 2;
+			this.pos_y = 0;
+			this.player_color = player_top_colour;
+		}
+		if(player == "bottom")
+		{
+			this.pos_x = canvas.width / 2 - this.height / 2;
+			this.pos_y = canvas.height - this.width;
+			this.player_color = player_bottom_colour;
+		}
+		if(player == "left")
+		{
+			this.pos_x = 0;
+			this.pos_y = canvas.height / 2 - this.height / 2;
+			this.player_color = player_left_colour;
+		}
+		if(player == "right")
+		{
+			this.pos_x = canvas.width - this.width;
+			this.pos_y = canvas.height / 2 - this.height / 2;
+			this.player_color = player_right_colour;
+		}
+	}
+	this.resize_paddle = function ()
+	{
+		this.pos_x = this.pos_x * canvas.width / canvas_old_width;
+		this.pos_y = this.pos_y * canvas.height / canvas_old_height;
+		this.height = this.height * canvas.width / canvas_old_width;
+		this.width = this.width * canvas.height / canvas_old_height;
+	}
+	this.draw_paddle = function ()
+	{
+		ctx.fillStyle = this.player_color;
+		ctx.strokeStyle = this.player_color;
+		if(this.player == "top" || this.player == "bottom")
+			ctx.fillRect(this.pos_x, this.pos_y, this.height, this.width);
+		if(this.player == "left" || this.player == "right")
+			ctx.fillRect(this.pos_x, this.pos_y, this.width, this.height);
+	}
+	this.delete_paddle = function()
+	{
+		if(this.player == "top" || this.player == "bottom")
+			ctx.clearRect(this.pos_x, this.pos_y, this.height, this.width);
+		if(this.player == "left" || this.player == "right")
+			ctx.clearRect(this.pos_x, this.pos_y, this.width, this.height);
+	}
+	this.init_position(player);
+	this.draw_paddle();
+}
+
+function resize_paddle(paddle) {
+	
+}
+
+function make_ball (previous) {
 	this.min_y = (canvas.width / 4),
-	this.max_y = (canvas.width / 4) * 3,
-	this.pos_x = canvas.height / 2,
-	this.pos_y = Math.random() * ((canvas.width / 4 * 3) - (canvas.width / 4)) + (canvas.width / 4),
-	this.radius = canvas.width / 60,
-	this.direction = Math.random(),
-
+	this.max_y = (canvas.width / 4) * 3
+	this.radius = canvas.width / 60
+	if(previous == null)
+	{
+		this.pos_x = canvas.height / 2,
+		this.pos_y = Math.random() * ((canvas.width / 4 * 3) - (canvas.width / 4)) + (canvas.width / 4)
+		this.direction = Math.random();
+	}
+	else
+	{
+		this.pos_x = previous.pos_x * canvas.width / canvas_old_width;
+		this.pos_y = previous.pos_y * canvas.height / canvas_old_height;
+		this.ball_velocity_x = previous.ball_velocity_x * canvas.width / canvas_old_width,
+		this.ball_velocity_y = previous.ball_velocity_y * canvas.height / canvas_old_height
+	}
 	this.setVelocity = function()
 	{
 		if(this.direction <= 0.25) {
@@ -234,64 +257,13 @@ function make_ball () {
 		if(last_touch == "bottom")
 			this.pos_y -= Math.abs(this.ball_velocity_y);
 	}
-	this.setVelocity(this.direction);
+	if(previous == null)
+		this.setVelocity(this.direction);
 }
 
-function make_paddle(player) { // player is top || bottom || left || right
-	this.player = player,
-	this.width = canvas.width / 75;
-	this.height = canvas.height / 8;
-
-	this.init_position = function(player)
-	{
-		if(player == "top")
-		{
-			this.pos_x = canvas.width / 2 - this.height / 2;
-			this.pos_y = 0;
-			this.player_color = player_top_colour;
-		}
-		if(player == "bottom")
-		{
-			this.pos_x = canvas.width / 2 - this.height / 2;
-			this.pos_y = canvas.height - this.width;
-			this.player_color = player_bottom_colour;
-		}
-		if(player == "left")
-		{
-			this.pos_x = 0;
-			this.pos_y = canvas.height / 2 - this.height / 2;
-			this.player_color = player_left_colour;
-		}
-		if(player == "right")
-		{
-			this.pos_x = canvas.width - this.width;
-			this.pos_y = canvas.height / 2 - this.height / 2;
-			this.player_color = player_right_colour;
-		}
-	}
-	this.draw_paddle = function ()
-	{
-		ctx.fillStyle = this.player_color;
-		ctx.strokeStyle = this.player_color;
-		if(this.player == "top" || this.player == "bottom")
-			ctx.fillRect(this.pos_x, this.pos_y, this.height, this.width);
-		if(this.player == "left" || this.player == "right")
-			ctx.fillRect(this.pos_x, this.pos_y, this.width, this.height);
-	}
-	this.delete_paddle = function()
-	{
-		if(this.player == "top" || this.player == "bottom")
-			ctx.clearRect(this.pos_x, this.pos_y, this.height, this.width);
-		if(this.player == "left" || this.player == "right")
-			ctx.clearRect(this.pos_x, this.pos_y, this.width, this.height);
-	}
-	this.init_position(player);
-	this.draw_paddle();
-}
-
-function make_scores()
+function make_scores(cpy_goals)
 {
-	this.goals = {left: 0, right: 0, top: 0, bottom: 0};
+	this.goals = {left: cpy_goals.left, right: cpy_goals.right, top: cpy_goals.top, bottom: cpy_goals.bottom};
 	this.colour = {left: player_left_colour, right: player_right_colour, top: player_top_colour, bottom: player_bottom_colour};
 	this.scores_width = canvas.width / 10;
 	this.scores_height = canvas.height / 10;
@@ -345,6 +317,18 @@ function make_scores()
 	}
 }
 
+function init_paddle_scores()
+{
+	ball = new make_ball(ball);
+	paddle_left.resize_paddle();
+	paddle_right.resize_paddle();
+	paddle_top.resize_paddle();
+	paddle_bottom.resize_paddle();
+	paddles = {left: paddle_left, right: paddle_right, top: paddle_top, bottom: paddle_bottom};
+	scores = new make_scores(scores.goals);
+	prev_scores = new make_scores(prev_scores.goals);
+}
+
 function colliding_goal(ball)
 {
 	if(ball.pos_x <= ball.radius || ball.pos_y <= ball.radius || ball.pos_x + ball.radius >= canvas.width || ball.pos_y + ball.radius >= canvas.height)
@@ -362,9 +346,6 @@ function colliding_goal(ball)
 	}
 	return (false);
 }
-
-let	last_touch = "none";
-let	conceder = "none";
 
 function colliding_ball_paddle(ball, paddles)
 {
@@ -421,23 +402,6 @@ function colliding_ball_paddle(ball, paddles)
 
 // PLAY
 
-let scores = new make_scores();
-let ball;
-let paddle_left = new make_paddle("left");
-let paddle_right = new make_paddle("right");
-let paddle_top = new make_paddle("top");
-let paddle_bottom = new make_paddle("bottom");
-let paddles = {left: paddle_left, right: paddle_right, top: paddle_top, bottom:paddle_bottom};
-let isGoal = false;
-let	first = true;
-let prev_scores = new make_scores();
-
-const preSleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
-
-const realSleep = async (ms) => {
-	await preSleep(ms);
-};
-
 function goal_animation_text (scorer)
 {
 	ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -454,8 +418,6 @@ function goal_animation_text (scorer)
 };
 
 // MOVING PADDLES
-
-paddle_pace = Math.abs(canvas.width / 110);
 
 let bottom_direction = 0;
 let top_direction = 0;
@@ -488,7 +450,6 @@ function key_up(event)
 	}
 }
 
-
 function key_down(event)
 {
 	if(event.key == "ArrowUp" || event.key == "ArrowRight")    // if user plays online best option is ArrowUp and ArrowRight work the same,
@@ -513,81 +474,6 @@ function key_down(event)
 		if(right_ai == false)
 			right_direction = -1;
 	}
-
-	// HENRI STOP GETTING CONFUSED
-
-	// ARROWS LEFT AND RIGHT MOVE THE TOP AND BOTTOM PADDLES, LEFT AND RIGHT
-	// ARROWS UP AND DOWN MOVE THE LEFT AND RIGHT PADDLES, UP AND DOWN
-
-	// if(event.key == "ArrowLeft")
-	// {
-	// 	if(bottom_ai == false)
-	// 	{
-	// 		if(paddle_bottom.pos_x > 0)
-	// 			paddle_bottom.pos_x -= paddle_pace;
-	// 		if(paddle_bottom.pos_x < 0)
-	// 			paddle_bottom.pos_x = 0;
-	// 	}
-	// 	if(top_ai == false)
-	// 	{
-	// 		if(paddle_bottom.pos_x > 0)
-	// 			paddle_bottom.pos_x -= paddle_pace;
-	// 		if(paddle_bottom.pos_x < 0)
-	// 			paddle_bottom.pos_x = 0;
-	// 	}
-	// }
-	// else if (event.key == "ArrowRight")
-	// {
-	// 	if(bottom_ai == false)
-	// 	{
-	// 		if(paddle_bottom.pos_x + paddle_bottom.height < canvas.width)
-	// 			paddle_bottom.pos_x += paddle_pace;
-	// 		if(paddle_bottom.pos_x + paddle_bottom.height > canvas.width)
-	// 			paddle_bottom.pos_x = canvas.width - paddle_bottom.height;
-	// 	}
-	// 	if(top_ai == false)
-	// 	{
-	// 		if(paddle_top.pos_x + paddle_top.height < canvas.width)
-	// 			paddle_top.pos_x += paddle_pace;
-	// 		if(paddle_top.pos_x + paddle_top.height > canvas.width)
-	// 			paddle_top.pos_x = canvas.width - paddle_top.height;
-	// 	}
-	// }
-	// else if (event.key == "ArrowUp") // LEFT AND RIGHT
-	// {
-	// 	if(left_ai == false)
-	// 	{
-	// 		if(paddle_left.pos_y > 0)
-	// 			paddle_left.pos_y -= paddle_pace;
-	// 		if(paddle_left.pos_y < 0)
-	// 			paddle_left.pos_y = 0;
-	// 	}
-	// 	if(right_ai == false)
-	// 	{
-	// 		if(paddle_right.pos_y > 0)
-	// 			paddle_right.pos_y -= paddle_pace;
-	// 		if(paddle_right.pos_y < 0)
-	// 			paddle_right.pos_y = 0;
-	// 	}
-	// }
-	// else if (event.key == "ArrowDown")
-	// {
-	// 	if(left_ai == false)
-	// 	{
-	// 		if(paddle_left.pos_y + paddle_left.height < canvas.height)
-	// 			paddle_left.pos_y += paddle_pace;
-	// 		if(paddle_left.pos_y + paddle_left.height > canvas.height)
-	// 			paddle_left.pos_y = canvas.height - paddle_left.height;
-	// 	}
-	// 	if(right_ai == false)
-	// 	{
-	// 		if(paddle_right.pos_y + paddle_right.height < canvas.height)
-	// 			paddle_right.pos_y += paddle_pace;
-	// 		if(paddle_right.pos_y + paddle_right.height > canvas.height)
-	// 			paddle_right.pos_y = canvas.height - paddle_right.height;
-	// 	}
-
-	// }
 }
 
 function simple_AI (ball)
@@ -626,15 +512,12 @@ function move_paddle()
 {
 	if(bottom_direction != 0)
 	{
-		console.log(bottom_direction);
-		console.log(paddle_bottom);
 		if(paddle_bottom.pos_x + paddle_bottom.height <= canvas.width)
 			paddle_bottom.pos_x += bottom_direction * paddle_pace;
 		if(paddle_bottom.pos_x + paddle_bottom.height > canvas.width)
 			paddle_bottom.pos_x = canvas.width - paddle_bottom.height;
 		if(paddle_bottom.pos_x < 0)
 			paddle_bottom.pos_x = 0;
-		console.log(paddle_bottom);
 	}
 	if(top_direction != 0)
 	{
@@ -665,8 +548,19 @@ function move_paddle()
 	}
 }
 
+// 42 COMPLIENT AI
+
+// complex_AI = function ()
+// {
+// 	let	last_move = {left: 0, top: 0, right: 0, bottom: 0};
+// 	let	objective = {left: height / 2, top: width / 2, right: height / 2, bottom: width / 2};
+
+// }
+
 gameLoop = async () =>
 {
+	// init();
+	// init_paddle_scores();
 	ctx.clearRect(0, 0, canvas.width, canvas.height);
 	for (key in paddles)
 		paddles[key].draw_paddle();
@@ -674,7 +568,6 @@ gameLoop = async () =>
 	{
 		if(first != true)
 		{
-			debugger;
 			goal_animation_text(last_touch);
 			prev_scores.draw_scores();
 			await realSleep(300);
@@ -687,7 +580,7 @@ gameLoop = async () =>
 			scores.draw_big_scores2(prev_scores);
 			await realSleep(500);
 		}
-		ball = new make_ball();
+		ball = new make_ball(null);
 		for (key in paddles)
 			paddles[key].init_position(paddles[key].player);
 		first = false;
@@ -706,7 +599,7 @@ gameLoop = async () =>
 		ball.speed_up();
 		ball.move_ball();
 		while(colliding_ball_paddle(ball, paddles) == true)
-			ball.reposition_ball_above_paddle(last_touch);
+			ball.reposition_ball_above_paddle(last_touch); // in case the paddle hits the ball right before it hits the wall or else ball lags and sticks to paddle
 		requestAnimationFrame(gameLoop); // handles case where it hits both the goal and the paddle at the same time
 		return ; // return required for the above case or game speed is doubled
 	}
@@ -714,6 +607,61 @@ gameLoop = async () =>
 	requestAnimationFrame(gameLoop);
 	return ;
 }
+
+// EVENTS
+
+button_up.onmousedown = function ()
+{
+	if(bottom_ai == false)
+		bottom_direction = 1;
+	if(top_ai == false)
+		top_direction = 1;
+	if(left_ai == false)
+		left_direction = 1;
+	if(right_ai == false)
+		right_direction = 1;
+}
+
+button_down.onmousedown = function ()
+{
+	if(bottom_ai == false)
+		bottom_direction = -1;
+	if(top_ai == false)
+		top_direction = -1;
+	if(left_ai == false)
+		left_direction = -1;
+	if(right_ai == false)
+		right_direction = -1;
+}
+
+button_up.onmouseup = function ()
+{
+	if(bottom_ai == false)
+		bottom_direction = 0;
+	if(top_ai == false)
+		top_direction = 0;
+	if(left_ai == false)
+		left_direction = 0;
+	if(right_ai == false)
+		right_direction = 0;
+}
+
+button_down.onmouseup = function ()
+{
+	if(bottom_ai == false)
+		bottom_direction = 0;
+	if(top_ai == false)
+		top_direction = 0;
+	if(left_ai == false)
+		left_direction = 0;
+	if(right_ai == false)
+		right_direction = 0;
+}
+
+window.addEventListener('resize', function() {
+	init();
+	init_paddle_scores();
+});
 
 document.addEventListener('keydown', function(event) {
 	key_down(event);
