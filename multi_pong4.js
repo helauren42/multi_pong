@@ -15,10 +15,16 @@ const right_ai = true;
 const top_ai = true;
 const bottom_ai = false;
 
-const ball_velocity_div = 500;
+const ball_velocity_div = 200;
 
-let button_up = document.getElementById("button_up");
-let button_down = document.getElementById("button_down"); // tried putting them both in the same class and using getElementByClassName(), but it somehow doesn't work
+let button_up = document.createElement("button");
+let button_down = document.createElement("button"); // tried putting them both in the same class and using getElementByClassName(), but it somehow doesn't work
+
+button_up.className = "Buttons";
+button_down.className = "Buttons";
+
+document.body.appendChild(button_up);
+document.body.appendChild(button_down);
 
 let format;
 
@@ -26,7 +32,6 @@ let font_size;
 let position;
 let paddle_pace;
 let	last_touch = "none";
-let	conceder = "none";
 
 // const single_player = false;
 
@@ -40,7 +45,6 @@ const realSleep = async (ms) => {
 
 function init ()
 {
-	paddle_pace = Math.abs(canvas.width / 60);
 	canvas_old_width = canvas.width;
 	canvas_old_height = canvas.height;
 	if(window.innerWidth <= window.innerHeight) {
@@ -54,7 +58,6 @@ function init ()
 		format = "height";
 	}
 	if(format == "height") {
-		console.log("here height");
 		position = (window.innerWidth - canvas.width) / 6;
 		font_size = canvas.height / 60;
 	
@@ -81,7 +84,6 @@ function init ()
 	}
 	
 	if(format == "width") {
-		console.log("here width");
 		position = (window.innerHeight - canvas.height) / 6;
 		font_size = canvas.height / 60;
 
@@ -106,25 +108,15 @@ function init ()
 		button_up.style.right = "55%";
 		button_up.innerText = "UP / RIGHT";
 	}
+	paddle_pace = Math.abs(canvas.width / 60);
 }
 
 init();
 
 // FUNCTION constructors
 
-let ball;
-let paddle_left = new make_paddle("left");
-let paddle_right = new make_paddle("right");
-let paddle_top = new make_paddle("top");
-let paddle_bottom = new make_paddle("bottom");
-let paddles = {left: paddle_left, right: paddle_right, top: paddle_top, bottom:paddle_bottom};
-let isGoal = false;
-let	first = true;
-let empty_score = {left: 0, right: 0, top: 0, bottom: 0}
-let scores = new make_scores(empty_score);
-let prev_scores = new make_scores(empty_score);
-
-function make_paddle(player) {
+class make_paddle {
+	constructor (player) {
 	this.player = player,
 	this.width = canvas.width / 75;
 	this.height = canvas.height / 8;
@@ -181,13 +173,10 @@ function make_paddle(player) {
 	}
 	this.init_position(player);
 	this.draw_paddle();
-}
+}}
 
-function resize_paddle(paddle) {
-	
-}
-
-function make_ball (previous) {
+class make_ball {
+	constructor (previous) {
 	this.min_y = (canvas.width / 4),
 	this.max_y = (canvas.width / 4) * 3
 	this.radius = canvas.width / 60
@@ -222,8 +211,8 @@ function make_ball (previous) {
 			this.ball_velocity_x = - canvas.width / ball_velocity_div,
 			this.ball_velocity_y = - canvas.height / ball_velocity_div
 		}
-		this.ball_velocity_y = Math.abs(this.ball_velocity_y);
-		this.pos_y = canvas.width / 4 * 3;
+		// this.ball_velocity_y = Math.abs(this.ball_velocity_y);
+		// this.pos_y = canvas.width / 4 * 3;
 	};
 	this.move_ball = function ()
 	{
@@ -241,10 +230,14 @@ function make_ball (previous) {
 	}
 	this.speed_up = function()
 	{
-		this.ball_velocity_x += 0.08 * canvas.width / ball_velocity_div;
-		this.ball_velocity_y += 0.08 * canvas.width / ball_velocity_div;
-		this.ball_velocity_x += 0.08 * this.ball_velocity_x;
-		this.ball_velocity_y += 0.08 * this.ball_velocity_y;
+		if(this.ball_velocity_x > 0)
+			this.ball_velocity_x += 0.05 * canvas.width / ball_velocity_div;
+		else
+			this.ball_velocity_x -= 0.05 * canvas.width / ball_velocity_div;
+		if(this.ball_velocity_y > 0)
+			this.ball_velocity_y += 0.05 * canvas.width / ball_velocity_div;
+		else
+			this.ball_velocity_y -= 0.05 * canvas.width / ball_velocity_div;
 	}
 	this.reposition_ball_above_paddle = function(last_touch)
 	{
@@ -259,9 +252,10 @@ function make_ball (previous) {
 	}
 	if(previous == null)
 		this.setVelocity(this.direction);
-}
+}}
 
-function make_scores(cpy_goals)
+class make_scores {
+	constructor (cpy_goals)
 {
 	this.goals = {left: cpy_goals.left, right: cpy_goals.right, top: cpy_goals.top, bottom: cpy_goals.bottom};
 	this.colour = {left: player_left_colour, right: player_right_colour, top: player_top_colour, bottom: player_bottom_colour};
@@ -308,14 +302,25 @@ function make_scores(cpy_goals)
 				ctx.font = `${canvas.width / 20}px Orbitron`;
 				ctx.fillText(this.goals[key], this.pos_x[key], this.pos_y, 100);
 			}
-			else
-			{
+			else {
 				ctx.font = `${canvas.width / 15}px Orbitron`;
 				ctx.fillText(this.goals[key], this.pos_x[key], this.pos_y, 200);
 			}
 		}
 	}
-}
+}}
+
+let ball;
+let paddle_left = new make_paddle("left");
+let paddle_right = new make_paddle("right");
+let paddle_top = new make_paddle("top");
+let paddle_bottom = new make_paddle("bottom");
+let paddles = {left: paddle_left, right: paddle_right, top: paddle_top, bottom:paddle_bottom};
+let isGoal = false;
+let	first = true;
+let empty_score = {left: 0, right: 0, top: 0, bottom: 0}
+let scores = new make_scores(empty_score);
+let prev_scores = new make_scores(empty_score);
 
 function init_paddle_scores()
 {
