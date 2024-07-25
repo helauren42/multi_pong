@@ -10,15 +10,30 @@ const player_bottom_colour = "orange";
 const player_left_colour = "green";
 const player_right_colour = "purple";
 
-const left_ai = true;
+const left_user = false;
+const right_user = false;
+const top_user = false;
+const bottom_user = true;
+
+const left_ai = false;
 const right_ai = true;
 const top_ai = true;
 const bottom_ai = false;
+
+const left_boss_ai = true;
+const right_boss_ai = false;
+const top_boss_ai = false;
+const bottom_boss_ai = false;
 
 const ball_velocity_div = 200;
 
 let button_up = document.createElement("button");
 let button_down = document.createElement("button"); // tried putting them both in the same class and using getElementByClassName(), but it somehow doesn't work
+
+button_up.addEventListener("mousedown", button_up_onmousedown);
+button_down.addEventListener("mousedown", button_down_onmousedown);
+button_up.addEventListener("mouseup",  button_up_onmouseup);
+button_down.addEventListener("mouseup", button_down_onmouseup);
 
 button_up.className = "Buttons";
 button_down.className = "Buttons";
@@ -180,6 +195,7 @@ class make_ball {
 	this.min_y = (canvas.width / 4),
 	this.max_y = (canvas.width / 4) * 3
 	this.radius = canvas.width / 60
+
 	if(previous == null)
 	{
 		this.pos_x = canvas.height / 2,
@@ -211,8 +227,7 @@ class make_ball {
 			this.ball_velocity_x = - canvas.width / ball_velocity_div,
 			this.ball_velocity_y = - canvas.height / ball_velocity_div
 		}
-		// this.ball_velocity_y = Math.abs(this.ball_velocity_y);
-		// this.pos_y = canvas.width / 4 * 3;
+		this.pos_y = canvas.width / 2;
 	};
 	this.move_ball = function ()
 	{
@@ -230,14 +245,17 @@ class make_ball {
 	}
 	this.speed_up = function()
 	{
+		let mulitplier = 0.045;
+
 		if(this.ball_velocity_x > 0)
-			this.ball_velocity_x += 0.05 * canvas.width / ball_velocity_div;
+			this.ball_velocity_x += mulitplier * canvas.width / ball_velocity_div;
 		else
-			this.ball_velocity_x -= 0.05 * canvas.width / ball_velocity_div;
+			this.ball_velocity_x -= mulitplier * canvas.width / ball_velocity_div;
+
 		if(this.ball_velocity_y > 0)
-			this.ball_velocity_y += 0.05 * canvas.width / ball_velocity_div;
+			this.ball_velocity_y += mulitplier * canvas.width / ball_velocity_div;
 		else
-			this.ball_velocity_y -= 0.05 * canvas.width / ball_velocity_div;
+			this.ball_velocity_y -= mulitplier * canvas.width / ball_velocity_div;
 	}
 	this.reposition_ball_above_paddle = function(last_touch)
 	{
@@ -264,10 +282,10 @@ class make_scores {
 	this.pos_y = canvas.height / 2;
 	this.pos_x = {left: canvas.width / 2 - canvas.width / 6, top: canvas.width / 2 - canvas.width / 16,
 		right: canvas.width / 2 + canvas.width / 6, bottom: canvas.width / 2 + canvas.width / 16};
+	
 	this.draw_scores = function()
 	{
-		for (key in this.goals)
-		{
+		for (let key in this.goals) {
 			ctx.fillStyle = this.colour[key];
 			ctx.font = `${canvas.width / 20}px Orbitron`;
 			ctx.fillText(this.goals[key], this.pos_x[key], this.pos_y, 100);
@@ -275,8 +293,7 @@ class make_scores {
 	}
 	this.draw_big_scores1 = function(prev_scores)
 	{
-		for (key in this.goals)
-		{
+		for (let key in this.goals) {
 			ctx.fillStyle = this.colour[key];
 			if(prev_scores.goals[key] == this.goals[key])
 			{
@@ -292,8 +309,7 @@ class make_scores {
 	}
 	this.draw_big_scores2 = function(prev_scores)
 	{
-		for (key in this.goals)
-		{
+		for (let key in this.goals) {
 			if(key == "none")
 				return ;
 			ctx.fillStyle = this.colour[key];
@@ -302,7 +318,8 @@ class make_scores {
 				ctx.font = `${canvas.width / 20}px Orbitron`;
 				ctx.fillText(this.goals[key], this.pos_x[key], this.pos_y, 100);
 			}
-			else {
+			else
+			{
 				ctx.font = `${canvas.width / 15}px Orbitron`;
 				ctx.fillText(this.goals[key], this.pos_x[key], this.pos_y, 200);
 			}
@@ -310,20 +327,7 @@ class make_scores {
 	}
 }}
 
-let ball;
-let paddle_left = new make_paddle("left");
-let paddle_right = new make_paddle("right");
-let paddle_top = new make_paddle("top");
-let paddle_bottom = new make_paddle("bottom");
-let paddles = {left: paddle_left, right: paddle_right, top: paddle_top, bottom:paddle_bottom};
-let isGoal = false;
-let	first = true;
-let empty_score = {left: 0, right: 0, top: 0, bottom: 0}
-let scores = new make_scores(empty_score);
-let prev_scores = new make_scores(empty_score);
-
-function init_paddle_scores()
-{
+function init_paddle_scores (){
 	ball = new make_ball(ball);
 	paddle_left.resize_paddle();
 	paddle_right.resize_paddle();
@@ -334,26 +338,27 @@ function init_paddle_scores()
 	prev_scores = new make_scores(prev_scores.goals);
 }
 
-function colliding_goal(ball)
-{
+function colliding_goal (){
 	if(ball.pos_x <= ball.radius || ball.pos_y <= ball.radius || ball.pos_x + ball.radius >= canvas.width || ball.pos_y + ball.radius >= canvas.height)
 	{
-		scores.goals[last_touch]++;
 		if (ball.pos_x <= ball.radius)
-			scores.goals["left"]--;
-		if (ball.pos_y <= ball.radius)
-			scores.goals["top"]--;
-		if(ball.pos_x + ball.radius >= canvas.width)
-			scores.goals["right"]--;
-		if(ball.pos_y + ball.radius >= canvas.height)
-			scores.goals["bottom"]--;
+			conceder = "left";
+		else if (ball.pos_y <= ball.radius)
+			conceder = "top";
+		else if(ball.pos_x + ball.radius >= canvas.width)
+			conceder = "right";
+		else if(ball.pos_y + ball.radius >= canvas.height)
+			conceder = "bottom";
+
+		if(conceder != last_touch)
+			scores.goals[last_touch]++;
+		scores.goals[conceder]--;
 		return (true);
 	}
 	return (false);
 }
 
-function colliding_ball_paddle(ball, paddles)
-{
+function colliding_ball_paddle (ball, paddles) {
 	if((ball.pos_x <= ball.radius + paddles.left.width) // LEFT PADDLE
 		&& ball.pos_y >= paddles.left.pos_y - ball.radius && ball.pos_y <= paddles.left.pos_y + paddles.left.height + ball.radius) // left paddle
 	{
@@ -364,19 +369,21 @@ function colliding_ball_paddle(ball, paddles)
 		if(ball.pos_y + ball.radius / 2 >= paddles.left.pos_y + paddles.left.height)
 			ball.ball_velocity_y = Math.abs(ball.ball_velocity_y);
 		last_touch = "left";
-		return (true);
+		console.log("Hit Left");
+		return ("left");
 	}
 	else if((ball.pos_y <= ball.radius + paddles.top.width) // TOP PADDLE
 		&& ball.pos_x >= paddles.top.pos_x - ball.radius && ball.pos_x <= paddles.top.pos_x + paddles.top.height + ball.radius) // top paddle
 	{
 		ball.ball_velocity_y = -ball.ball_velocity_y;
 
-		if(ball.pos_x - ball.radius / 2<= paddles.top.pos_x) // left edge
+		if(ball.pos_x - ball.radius / 2 <= paddles.top.pos_x) // left edge
 			ball.ball_velocity_x = - Math.abs(ball.ball_velocity_x);
 		if(ball.pos_x + ball.radius / 2 >= paddles.top.pos_x + paddles.top.height)
 			ball.ball_velocity_x = Math.abs(ball.ball_velocity_x);
 		last_touch = "top";
-		return (true);
+		console.log("Hit Top");
+		return ("top");
 	}
 	else if((ball.pos_x >= canvas.width - (ball.radius + paddles.right.width)) // RIGHT PADDLE
 		&& ball.pos_y >= paddles.right.pos_y - ball.radius && ball.pos_y <= paddles.right.pos_y + paddles.right.height + ball.radius) // right paddle
@@ -388,7 +395,8 @@ function colliding_ball_paddle(ball, paddles)
 		if(ball.pos_y + ball.radius / 2 >= paddles.right.pos_y + paddles.right.height)
 			ball.ball_velocity_y = Math.abs(ball.ball_velocity_y);
 		last_touch = "right";
-		return (true);
+		console.log("Hit Right");
+		return ("right");
 	}
 	else if((ball.pos_y >= canvas.height - (ball.radius + paddles.bottom.width)) // BOTTOM PADDLE
 		&& ball.pos_x >= paddles.bottom.pos_x - ball.radius && ball.pos_x <= paddles.bottom.pos_x + paddles.bottom.height + ball.radius) // bottom paddle
@@ -400,9 +408,10 @@ function colliding_ball_paddle(ball, paddles)
 		if(ball.pos_x + ball.radius / 2 >= paddles.bottom.pos_x + paddles.bottom.height)
 			ball.ball_velocity_x = Math.abs(ball.ball_velocity_x);
 		last_touch = "bottom";
-		return (true);
+		console.log("Hit Bottom");
+		return ("bottom");
 	}
-	return (false);
+	return (null);
 }
 
 // PLAY
@@ -410,7 +419,15 @@ function colliding_ball_paddle(ball, paddles)
 function goal_animation_text (scorer)
 {
 	ctx.clearRect(0, 0, canvas.width, canvas.height);
-	if (scorer !== "none") {
+	if (scorer == conceder) {
+		ctx.fillStyle = scores.colour[scorer];
+		ctx.font = `${canvas.width / 40}px Orbitron`;
+		let text = "What an own Goal by " + scorer + "!?";
+		ctx.fillText(text, canvas.width / 2 - canvas.width / 4, canvas.height / 4 * 3);
+		text = "Watch for the spins! Maybe you hit the ball too late..";
+		ctx.fillText(text, canvas.width / 2 - canvas.width / 4, canvas.height / 4 * 2);
+	}
+	else if (scorer !== "none") { // nobody touched the ball since kick off and it's a goal
 		ctx.fillStyle = scores.colour[scorer];
 		ctx.font = `${canvas.width / 40}px Orbitron`;
 		let text = "Beautiful Goal by " + scorer;
@@ -418,7 +435,7 @@ function goal_animation_text (scorer)
 	} else {
 		ctx.fillStyle = "white";
 		ctx.font = `${canvas.width / 40}px Orbitron`;
-		ctx.fillText("OMG how did that go in ?!", canvas.width / 2 - canvas.width / 7, canvas.height / 4 * 3);
+		ctx.fillText("How did that go in?! WAKE UP!", canvas.width / 2 - canvas.width / 7, canvas.height / 4 * 3);
 	}
 };
 
@@ -429,55 +446,94 @@ let top_direction = 0;
 let left_direction = 0;
 let right_direction = 0;
 
+let mouse_down = {left: 0, top: 0, right: 0, bottom: 0};
+
 function key_up(event)
 {
-	if(event.key == "ArrowUp" || event.key == "ArrowRight")
+	if(event.key == "ArrowUp" || event.key == "ArrowRight" || event.key == "ArrowDown" || event.key == "ArrowLeft")
 	{
-		if(bottom_ai == false)
-			bottom_direction = 0;
-		if(top_ai == false)
-			top_direction = 0;
-		if(left_ai == false)
-			left_direction = 0;
-		if(right_ai == false)
-			right_direction = 0;
-	}
-	else if (event.key == "ArrowDown" || event.key == "ArrowLeft")
-	{
-		if(bottom_ai == false)
-			bottom_direction = 0;
-		if(top_ai == false)
-			top_direction = 0;
-		if(left_ai == false)
-			left_direction = 0;
-		if(right_ai == false)
-			right_direction = 0;
+		if(bottom_user == true)
+		{
+			mouse_down.bottom--;
+			if(mouse_down.bottom == 0)
+				bottom_direction = 0;
+		}
+		if(top_user == true)
+		{
+			mouse_down.top--;
+			if(mouse_down.top == 0)
+				top_direction = 0;
+		}
+		if(left_user == true)
+		{
+			mouse_down.left--;
+			if(mouse_down.left == 0)
+				left_direction = 0;
+		}
+		if(right_user == true)
+		{
+			mouse_down.right--;
+			if(mouse_down.right == 0)
+				right_direction = 0;
+		}
 	}
 }
 
 function key_down(event)
 {
-	if(event.key == "ArrowUp" || event.key == "ArrowRight")    // if user plays online best option is ArrowUp and ArrowRight work the same,
+	if(event.key == "ArrowUp" || event.key == "ArrowRight")		// if user plays online best option is ArrowUp and ArrowRight work the same,
 	{															// and ArrowLeft and ArrowDown work the same 
-		if(bottom_ai == false)
+		if(bottom_user == true)
+		{
+			if(bottom_direction != 1)
+				mouse_down.bottom++;
 			bottom_direction = 1;
-		if(top_ai == false)
+		}
+		if(top_user == true)
+		{
+			if(top_direction != 1)
+				mouse_down.top++;
 			top_direction = 1;
-		if(left_ai == false)
-			left_direction = 1;
-		if(right_ai == false)
-			right_direction = 1;
+		}
+		if(left_user == true)
+		{
+			if(left_direction != 1)
+				left_direction = 1;
+			mouse_down.left++;
+		}
+		if(right_user == true)
+		{
+			if(right_direction != 1)
+				right_direction = 1;
+			mouse_down.right++;
+		}
 	}
 	else if (event.key == "ArrowDown" || event.key == "ArrowLeft")
 	{
-		if(bottom_ai == false)
+		if(bottom_user == true)
+		{
+			if(bottom_direction != -1)
+				mouse_down.bottom++;
 			bottom_direction = -1;
-		if(top_ai == false)
+		}
+		if(top_user == true)
+		{
+			if(top_direction != -1)
+				mouse_down.top++;
 			top_direction = -1;
-		if(left_ai == false)
-			left_direction = -1;
-		if(right_ai == false)
-			right_direction = -1;
+		}
+		if(left_user == true)
+		{
+			if(left_direction != -1)
+				left_direction = -1;
+			mouse_down.left++;
+		}
+		if(right_user == true)
+		{
+			if(right_direction != -1)
+				right_direction = -1;
+			mouse_down.right++;
+		}
 	}
 }
 
@@ -533,8 +589,7 @@ function move_paddle()
 		if(paddle_top.pos_x < 0)
 			paddle_top.pos_x = 0;
 	}
-	if(left_direction != 0)
-	{
+	if(left_direction != 0) {
 		if(paddle_left.pos_y + paddle_left.height <= canvas.width)
 			paddle_left.pos_y -= left_direction * paddle_pace;
 		if(paddle_left.pos_y + paddle_left.height > canvas.width)
@@ -542,8 +597,7 @@ function move_paddle()
 		if(paddle_left.pos_y < 0)
 			paddle_left.pos_y = 0;
 	}
-	if(right_direction != 0)
-	{
+	if(right_direction != 0) {
 		if(paddle_right.pos_y + paddle_right.height <= canvas.width)
 			paddle_right.pos_y -= right_direction * paddle_pace;
 		if(paddle_right.pos_y + paddle_right.height > canvas.width)
@@ -553,129 +607,366 @@ function move_paddle()
 	}
 }
 
-// 42 COMPLIENT AI
+let ball;
+let paddle_left = new make_paddle("left");
+let paddle_right = new make_paddle("right");
+let paddle_top = new make_paddle("top");
+let paddle_bottom = new make_paddle("bottom");
+let paddles = {left: paddle_left, right: paddle_right, top: paddle_top, bottom: paddle_bottom};
+let isGoal = false;
+let	first = true;
+let empty_score = {left: 0, right: 0, top: 0, bottom: 0}
+let scores = new make_scores(empty_score);
+let prev_scores = new make_scores(empty_score);
 
-// complex_AI = function ()
-// {
-// 	let	last_move = {left: 0, top: 0, right: 0, bottom: 0};
-// 	let	objective = {left: height / 2, top: width / 2, right: height / 2, bottom: width / 2};
-
-// }
-
-gameLoop = async () =>
+function apply_paddle_movement(touch)
 {
-	// init();
-	// init_paddle_scores();
-	ctx.clearRect(0, 0, canvas.width, canvas.height);
-	for (key in paddles)
-		paddles[key].draw_paddle();
-	if(isGoal == true || first == true)
+	let dir;
+
+	switch (touch)
 	{
-		if(first != true)
+		case "left":
+			dir = left_direction;
+			break;
+		case "right":
+			dir = left_direction;
+			break;
+		case "bottom":
+			dir = bottom_direction;
+			break;
+		case "top":
+			dir = top_direction;
+			break;
+	}
+	if (dir)
+	{
+		if(touch == "bottom" || touch == "top")
 		{
-			goal_animation_text(last_touch);
-			prev_scores.draw_scores();
-			await realSleep(300);
-	
-			goal_animation_text(last_touch);
-			scores.draw_big_scores1(prev_scores);
-			await realSleep(500);
-	
-			goal_animation_text(last_touch);
-			scores.draw_big_scores2(prev_scores);
-			await realSleep(500);
+			if(dir == 1 && ball.ball_velocity_x > 0 || dir == -1 && ball.ball_velocity_x < 0)
+			{
+				ball.ball_velocity_x *= 1.60;
+				ball.ball_velocity_y /= 1.60;
+			}
+			else if(dir == -1 && ball.ball_velocity_x > 0 || dir == 1 && ball.ball_velocity_x < 0)
+			{
+				ball.ball_velocity_x /= 1.60;
+				ball.ball_velocity_y *= 1.60;
+			}
 		}
-		ball = new make_ball(null);
-		for (key in paddles)
-			paddles[key].init_position(paddles[key].player);
-		first = false;
-		isGoal = false;
-		last_touch = "none";
-		for(key in scores.goals)
-			prev_scores.goals[key] = scores.goals[key];
+		else
+		{
+			if(dir == 1 && ball.ball_velocity_y > 0 || dir == -1 && ball.ball_velocity_y < 0)
+			{
+				ball.ball_velocity_y *= 1.60;
+				ball.ball_velocity_x /= 1.60;
+			}
+			else if(dir == -1 && ball.ball_velocity_y > 0 || dir == 1 && ball.ball_velocity_y < 0)
+			{
+				ball.ball_velocity_y /= 1.60;
+				ball.ball_velocity_x *= 1.60;
+			}
+		}
 	}
-	simple_AI(ball);
-	scores.draw_scores();
-	move_paddle();
-	ball.move_ball();
-	ball.draw_ball();
-	if(colliding_ball_paddle(ball, paddles) == true)
+}
+
+	function stillCollides(ball)
 	{
-		ball.speed_up();
-		ball.move_ball();
-		while(colliding_ball_paddle(ball, paddles) == true)
-			ball.reposition_ball_above_paddle(last_touch); // in case the paddle hits the ball right before it hits the wall or else ball lags and sticks to paddle
-		requestAnimationFrame(gameLoop); // handles case where it hits both the goal and the paddle at the same time
-		return ; // return required for the above case or game speed is doubled
+		if(ball.pos_x <= ball.radius + paddles.left.width && last_touch == "left") // LEFT PADDLE
+		{
+			last_touch = "left";
+			return ("left");
+		}
+		else if(ball.pos_y <= ball.radius + paddles.top.width && last_touch == "top") // TOP PADDLE
+		{
+			last_touch = "top";
+			return ("top");
+		}
+		else if((ball.pos_x >= canvas.width - (ball.radius + paddles.right.width)) && last_touch == "right") // RIGHT PADDLE
+		{
+			last_touch = "right";
+			return ("right");
+		}
+		else if((ball.pos_y >= canvas.height - (ball.radius + paddles.bottom.width)) && last_touch == "bottom") // BOTTOM PADDLE
+		{
+			last_touch = "bottom";
+			return ("bottom");
+		}
 	}
-	isGoal = colliding_goal(ball);
-	requestAnimationFrame(gameLoop);
-	return ;
-}
 
-// EVENTS
+	let last_move = 0;
 
-button_up.onmousedown = function ()
-{
-	if(bottom_ai == false)
-		bottom_direction = 1;
-	if(top_ai == false)
-		top_direction = 1;
-	if(left_ai == false)
-		left_direction = 1;
-	if(right_ai == false)
-		right_direction = 1;
-}
+	let start = {x : 0, y : 0};
+	let end = {x : 0, y : 0};
+	let vector = {x : 0, y : 0};
+	let time = {x : 0, y : 0};
+	let objectives = {left : null, top : null, right : null, bottom : null};
 
-button_down.onmousedown = function ()
-{
-	if(bottom_ai == false)
-		bottom_direction = -1;
-	if(top_ai == false)
-		top_direction = -1;
-	if(left_ai == false)
-		left_direction = -1;
-	if(right_ai == false)
-		right_direction = -1;
-}
+	function find_next_point_of_contact(start, vector, ball)
+	{
+		let wall_width = paddle_left.width + ball.radius;
+		let wall_pos_x;
+		let wall_pos_y;
+		if(vector.x < 0)
+			wall_pos_x = paddle_left.width + ball.radius;
+		else
+			wall_pos_x = canvas.width - paddle_left.width + ball.radius;
+		time.x = (wall_pos_x - start.x) / Math.abs(vector.x);
+		
+		console.log('wall_pos_x:', wall_pos_x);
+		console.log('start.x:', start.x);
+		console.log('vector.x:', vector.x);
+		console.log("time.x", time.x);
 
-button_up.onmouseup = function ()
-{
-	if(bottom_ai == false)
-		bottom_direction = 0;
-	if(top_ai == false)
-		top_direction = 0;
-	if(left_ai == false)
-		left_direction = 0;
-	if(right_ai == false)
-		right_direction = 0;
-}
+		if(vector.y < 0)
+			wall_pos_y = paddle_left.width + ball.radius;
+		else
+			wall_pos_y = canvas.width - paddle_left.width + ball.radius;
 
-button_down.onmouseup = function ()
-{
-	if(bottom_ai == false)
-		bottom_direction = 0;
-	if(top_ai == false)
-		top_direction = 0;
-	if(left_ai == false)
-		left_direction = 0;
-	if(right_ai == false)
-		right_direction = 0;
-}
+		time.y = (wall_pos_y - start.y) / Math.abs(vector.y);
 
-window.addEventListener('resize', function() {
-	init();
-	init_paddle_scores();
-});
+		console.log('wall_pos_y:', wall_pos_y);
+		console.log('start.y:', start.y);
+		console.log('vector.y:', vector.y);
+		console.log("time.y: ", time.y);
 
-document.addEventListener('keydown', function(event) {
-	key_down(event);
-	return ;
-});
+		if(time.x < time.y) // will hit left or right wall first
+		{
+			end.y = Math.abs(start.y + vector.y * time.x);
+			end.x = canvas.width; // hits right
+			console.log("start y: ", start.y, "vector.y: ", vector.y, "time.x: ", time.x, "result: ", Math.abs(start.y + vector.y * time.x));
+			console.log("canvas.width: ", canvas.width);
+			if(vector.x < 0) // hits left
+				end.x = wall_width;
+		}
+		else // will hit top or bottom
+		{
+			end.x = Math.abs(start.x + vector.x * time.y);
+			end.y = canvas.height;
+			console.log("start x: ", start.x, "vector.x: ", vector.x, "time.y: ", time.y, "result: ", Math.abs(start.x + vector.x * time.y));
+			console.log("canvas.height: ", canvas.height);
+			if(vector.y < 0)
+				end.y = wall_width;
+		}
+		console.log("end.x", end.x);
+		console.log("end.y: ", end.y);
+		console.log(end);
+	}
 
-document.addEventListener('keyup', function(event) {
-	key_up(event);
-	return ;
-});
+	// this.height = canvas.height / 8; paddle height is 1/8th of canvas, I need to use this to determine a certain amount variability / randomness
+	// so that the ball doesn't hit the AI paddle on the same point all the time
+
+	const randomness_play = canvas.height / 20;
+	let	compensation = 1.2;
+
+	function boss_AI(ball)
+	{
+		contact_width = (paddle_left.width + ball.radius) * 1.2;
+
+		if(left_direction == 1 && paddle_left.pos_y <= objectives.left)
+			left_direction = 0;
+		else if (left_direction == -1 && paddle_left.pos_y >= objectives.left)
+			left_direction = 0;
+		let now = Date.now();
+		if(now - last_move < 1000 || left_boss_ai == false)
+			return ;
+
+		last_move = Date.now();
+		console.log("EXECUTING move: ", last_move);
+		start.x = ball.pos_x;
+		start.y = ball.pos_y;
+		vector.x = ball.ball_velocity_x;
+		vector.y = ball.ball_velocity_y;
+
+		let rounds = 0;
+		find_next_point_of_contact(start, vector, ball);
+		while(end.x > contact_width && rounds < 5)
+		{
+			start.x = end.x;
+			start.y = end.y;
+			console.log("CONTACT IN LOOP: ", end);
+			if(end.y <= contact_width || end.y >= canvas.width - contact_width)
+				vector.y = -vector.y;
+			else
+				vector.x = -vector.x;
+			find_next_point_of_contact(start, vector, ball);
+			rounds++;
+		}
+
+		if(rounds == 5)
+			console.log("ROUNDS == 5 WTF?");
+		console.log("next Left contact: ", end);
+		// if(end.x <= paddle_left.width * 1.2)
+		if(end.x <= contact_width)
+		{
+			// fix objective
+			objectives.left = end.y - (paddle_left.height / 2);
+			objectives.left += - (randomness_play / 2) + (Math.random() * randomness_play);
+			console.log("objective left: ", objectives.left);
+			console.log("paddle_left: ", paddle_left.pos_y);
+			if(paddle_left.pos_y >= objectives.left - paddle_left.height / 6 && paddle_left.pos_y <= objectives.left + paddle_left.height / 6)
+				return ;
+			if(paddle_left.pos_y < objectives.left) //
+				left_direction = -1;
+			else if (paddle_left.pos_y > objectives.left)
+				left_direction = 1;
+		}
+		// console.log("left_dir: ", left_direction);
+		else if(end.x > paddle_left.width)
+		{
+			console.log("no threat found");
+			return ;
+		}
+		debugger;
+		// find next point of contact with THE wall
+	}
+
+	function reset_directions()
+	{
+		if(left_boss_ai == true)
+			left_direction = 0;
+		if(top_boss_ai == true)
+			top_direction = 0;
+		if(right_boss_ai == true)
+			right_direction = 0;
+		if(bottom_boss_ai == true)
+			bottom_direction = 0;
+	}
+
+	async function gameLoop()
+	{
+		ctx.clearRect(0, 0, canvas.width, canvas.height);
+		for (let key in paddles)
+		{
+			if(key != "directions")
+				paddles[key].draw_paddle();
+		}
+		if(isGoal == true || first == true)
+		{
+			if(first != true)
+			{
+				goal_animation_text(last_touch);
+				prev_scores.draw_scores();
+				await realSleep(300);
+		
+				goal_animation_text(last_touch);
+				scores.draw_big_scores1(prev_scores);
+				await realSleep(500);
+		
+				goal_animation_text(last_touch);
+				scores.draw_big_scores2(prev_scores);
+				await realSleep(500);
+			}
+			else
+				init();
+			ball = new make_ball(null);
+			for (let key in paddles)
+			{
+				if(key != "directions")
+				paddles[key].init_position(paddles[key].player);
+			}
+			first = false;
+			isGoal = false;
+			last_touch = "none";
+			for(let key in scores.goals)
+				prev_scores.goals[key] = scores.goals[key];
+		}
+		simple_AI(ball);
+		boss_AI(ball);
+		scores.draw_scores();
+		move_paddle();
+		ball.move_ball();
+		ball.draw_ball();
+		if(colliding_ball_paddle(ball, paddles) != null)
+		{
+			while(stillCollides(ball) != null)
+			{
+				ball.move_ball();
+				ball.draw_ball();
+				ball.reposition_ball_above_paddle(last_touch); // in case the paddle hits the ball right before it hits the wall or else ball lags and sticks to paddle
+			}
+			apply_paddle_movement(last_touch);
+			ball.speed_up();
+			requestAnimationFrame(gameLoop); // handles case where it hits both the goal and the paddle at the same time
+			return ; // return required for the above case or game speed is doubled
+		}
+		isGoal = colliding_goal(ball);
+		if(isGoal == true)
+		{
+			console.log("GOOOAL!!!: ");
+			console.log("ball x: ", ball.pos_x);
+			console.log("ball y: ", ball.pos_y);
+			reset_directions();
+			requestAnimationFrame(gameLoop);
+			debugger;
+			return ;
+		}
+		requestAnimationFrame(gameLoop);
+		return ;
+	}
+
+	// EVENTS
+
+	function button_up_onmousedown ()
+	{
+		if(bottom_user == true)
+			bottom_direction = 1;
+		if(top_user == true)
+			top_direction = 1;
+		if(left_user == true)
+			left_direction = 1;
+		if(right_user == true)
+			right_direction = 1;
+	}
+	
+	function button_down_onmousedown ()
+	{
+		if(bottom_user == true)
+			bottom_direction = -1;
+		if(top_user == true)
+			top_direction = -1;
+		if(left_user == true)
+			left_direction = -1;
+		if(right_user == true)
+			right_direction = -1;
+	}
+	
+	function button_up_onmouseup ()
+	{
+		if(bottom_user == true)
+			bottom_direction = 0;
+		if(top_user == true)
+			top_direction = 0;
+		if(left_user == true)
+			left_direction = 0;
+		if(right_user == true)
+			right_direction = 0;
+	}
+	
+	function button_down_onmouseup ()
+	{
+		if(bottom_user == true)
+			bottom_direction = 0;
+		if(top_user == true)
+			top_direction = 0;
+		if(left_user == true)
+			left_direction = 0;
+		if(right_user == true)
+			right_direction = 0;
+	}
+
+	window.addEventListener('resize', function() {
+		init();
+		init_paddle_scores();
+	});
+
+	document.addEventListener('keydown', function(event) {
+		key_down(event);
+		return ;
+	});
+
+	document.addEventListener('keyup', function(event) {
+		key_up(event);
+		return ;
+	});
 
 requestAnimationFrame(gameLoop);
