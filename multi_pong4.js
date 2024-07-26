@@ -672,25 +672,13 @@ function apply_paddle_movement(touch)
 	function stillCollides(ball)
 	{
 		if(ball.pos_x <= ball.radius + paddles.left.width && last_touch == "left") // LEFT PADDLE
-		{
-			last_touch = "left";
-			return ("left");
-		}
+			return (last_touch = "left", "left");
 		else if(ball.pos_y <= ball.radius + paddles.top.width && last_touch == "top") // TOP PADDLE
-		{
-			last_touch = "top";
-			return ("top");
-		}
+			return (last_touch = "top", "top");
 		else if((ball.pos_x >= canvas.width - (ball.radius + paddles.right.width)) && last_touch == "right") // RIGHT PADDLE
-		{
-			last_touch = "right";
-			return ("right");
-		}
+			return (last_touch = "right", "right");
 		else if((ball.pos_y >= canvas.height - (ball.radius + paddles.bottom.width)) && last_touch == "bottom") // BOTTOM PADDLE
-		{
-			last_touch = "bottom";
-			return ("bottom");
-		}
+			return (last_touch = "bottom", "bottom");
 	}
 
 	let last_move = 0;
@@ -700,7 +688,6 @@ function apply_paddle_movement(touch)
 	let vector = {x : 0, y : 0};
 	let time = {x : 0, y : 0};
 	let objectives = {left : null, top : null, right : null, bottom : null};
-	let wait_player_move = null;
 
 	function find_next_point_of_contact(start, vector, ball)
 	{
@@ -710,7 +697,7 @@ function apply_paddle_movement(touch)
 			end.x = contact_width;
 		else
 			end.x = canvas.width - contact_width;
-		
+
 		time.x = Math.abs((end.x - start.x) / vector.x);
 
 		if(vector.y < 0)
@@ -772,14 +759,6 @@ function apply_paddle_movement(touch)
 
 		let rounds = 0;
 		find_next_point_of_contact(start, vector, ball);
-		if(end.y <= contact_width)
-			wait_player_move = "top";
-		else if (end.y >= canvas.width - contact_width)
-			wait_player_move = "bottom";
-		else if(end.x <= contact_width)
-			wait_player_move = "left";
-		else if (end.x >= canvas.width - contact_width)
-			wait_player_move = "right";
 		while(end.x > contact_width && rounds < 5)
 		{
 			start.x = end.x;
