@@ -700,52 +700,46 @@ function apply_paddle_movement(touch)
 	let vector = {x : 0, y : 0};
 	let time = {x : 0, y : 0};
 	let objectives = {left : null, top : null, right : null, bottom : null};
+	let wait_player_move = null;
 
 	function find_next_point_of_contact(start, vector, ball)
 	{
-		let wall_width = paddle_left.width + ball.radius;
-		let wall_pos_x;
-		let wall_pos_y;
+		let contact_width = paddle_left.width + ball.radius;
+
 		if(vector.x < 0)
-			wall_pos_x = paddle_left.width + ball.radius;
+			end.x = contact_width;
 		else
-			wall_pos_x = canvas.width - paddle_left.width + ball.radius;
-		time.x = (wall_pos_x - start.x) / Math.abs(vector.x);
+			end.x = canvas.width - contact_width;
 		
-		console.log('wall_pos_x:', wall_pos_x);
-		console.log('start.x:', start.x);
-		console.log('vector.x:', vector.x);
-		console.log("time.x", time.x);
+		time.x = Math.abs((end.x - start.x) / vector.x);
 
 		if(vector.y < 0)
-			wall_pos_y = paddle_left.width + ball.radius;
+			end.y = contact_width;
 		else
-			wall_pos_y = canvas.width - paddle_left.width + ball.radius;
+			end.y = canvas.width - contact_width;
 
-		time.y = (wall_pos_y - start.y) / Math.abs(vector.y);
-
-		console.log('wall_pos_y:', wall_pos_y);
-		console.log('start.y:', start.y);
-		console.log('vector.y:', vector.y);
-		console.log("time.y: ", time.y);
+		time.y = Math.abs((end.y - start.y) / vector.y);
 
 		if(time.x < time.y) // will hit left or right wall first
 		{
 			end.y = Math.abs(start.y + vector.y * time.x);
-			end.x = canvas.width; // hits right
-			console.log("start y: ", start.y, "vector.y: ", vector.y, "time.x: ", time.x, "result: ", Math.abs(start.y + vector.y * time.x));
-			console.log("canvas.width: ", canvas.width);
-			if(vector.x < 0) // hits left
-				end.x = wall_width;
+			// console.log('end.x:', end.x);
+			// console.log('start.x:', start.x);
+			// console.log('vector.x:', vector.x);
+			// console.log("time.x", time.x);
+			// console.log("");
+			// console.log("start y: ", start.y, "vector.y: ", vector.y, "time.x: ", time.x, "result: ", Math.abs(start.y + vector.y * time.x));
+			// console.log("canvas.width: ", canvas.width);
 		}
 		else // will hit top or bottom
 		{
 			end.x = Math.abs(start.x + vector.x * time.y);
-			end.y = canvas.height;
-			console.log("start x: ", start.x, "vector.x: ", vector.x, "time.y: ", time.y, "result: ", Math.abs(start.x + vector.x * time.y));
-			console.log("canvas.height: ", canvas.height);
-			if(vector.y < 0)
-				end.y = wall_width;
+			// console.log('end.y:', end.y);
+			// console.log('start.y:', start.y);
+			// console.log('vector.y:', vector.y);
+			// console.log("time.y: ", time.y);
+			// console.log("start x: ", start.x, "vector.x: ", vector.x, "time.y: ", time.y, "result: ", Math.abs(start.x + vector.x * time.y));
+			// console.log("canvas.height: ", canvas.height);
 		}
 		console.log("end.x", end.x);
 		console.log("end.y: ", end.y);
@@ -756,16 +750,15 @@ function apply_paddle_movement(touch)
 	// so that the ball doesn't hit the AI paddle on the same point all the time
 
 	const randomness_play = canvas.height / 20;
-	let	compensation = 1.2;
 
 	function boss_AI(ball)
 	{
-		contact_width = (paddle_left.width + ball.radius) * 1.2;
-
+		let contact_width = (paddle_left.width + ball.radius);
 		if(left_direction == 1 && paddle_left.pos_y <= objectives.left)
 			left_direction = 0;
 		else if (left_direction == -1 && paddle_left.pos_y >= objectives.left)
 			left_direction = 0;
+
 		let now = Date.now();
 		if(now - last_move < 1000 || left_boss_ai == false)
 			return ;
@@ -779,6 +772,14 @@ function apply_paddle_movement(touch)
 
 		let rounds = 0;
 		find_next_point_of_contact(start, vector, ball);
+		if(end.y <= contact_width)
+			wait_player_move = "top";
+		else if (end.y >= canvas.width - contact_width)
+			wait_player_move = "bottom";
+		else if(end.x <= contact_width)
+			wait_player_move = "left";
+		else if (end.x >= canvas.width - contact_width)
+			wait_player_move = "right";
 		while(end.x > contact_width && rounds < 5)
 		{
 			start.x = end.x;
@@ -794,21 +795,26 @@ function apply_paddle_movement(touch)
 
 		if(rounds == 5)
 			console.log("ROUNDS == 5 WTF?");
-		console.log("next Left contact: ", end);
 		// if(end.x <= paddle_left.width * 1.2)
 		if(end.x <= contact_width)
 		{
 			// fix objective
 			objectives.left = end.y - (paddle_left.height / 2);
 			objectives.left += - (randomness_play / 2) + (Math.random() * randomness_play);
-			console.log("objective left: ", objectives.left);
-			console.log("paddle_left: ", paddle_left.pos_y);
 			if(paddle_left.pos_y >= objectives.left - paddle_left.height / 6 && paddle_left.pos_y <= objectives.left + paddle_left.height / 6)
 				return ;
 			if(paddle_left.pos_y < objectives.left) //
 				left_direction = -1;
 			else if (paddle_left.pos_y > objectives.left)
 				left_direction = 1;
+			if(left_direction != 0)
+			{
+				console.log("objective left: ", objectives.left);
+				console.log("paddle_left: ", paddle_left.pos_y);
+				debugger;
+			}
+			else
+				console.log("direction = 0");
 		}
 		// console.log("left_dir: ", left_direction);
 		else if(end.x > paddle_left.width)
@@ -816,7 +822,6 @@ function apply_paddle_movement(touch)
 			console.log("no threat found");
 			return ;
 		}
-		debugger;
 		// find next point of contact with THE wall
 	}
 
@@ -897,7 +902,6 @@ function apply_paddle_movement(touch)
 			console.log("ball y: ", ball.pos_y);
 			reset_directions();
 			requestAnimationFrame(gameLoop);
-			debugger;
 			return ;
 		}
 		requestAnimationFrame(gameLoop);
