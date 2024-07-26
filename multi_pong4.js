@@ -195,7 +195,7 @@ class make_ball {
 	this.min_y = (canvas.width / 4),
 	this.max_y = (canvas.width / 4) * 3
 	this.radius = canvas.width / 60
-
+	this.earlier_time = Date.now();
 	if(previous == null)
 	{
 		this.pos_x = canvas.height / 2,
@@ -231,8 +231,13 @@ class make_ball {
 	};
 	this.move_ball = function ()
 	{
-		this.pos_x += this.ball_velocity_x;
-		this.pos_y += this.ball_velocity_y;
+		let now = Date.now();
+		let elapsed_time = now - this.earlier_time;
+		if(elapsed_time <= 2)
+			return ;
+		this.pos_x += (this.ball_velocity_x / elapsed_time) * 16;
+		this.pos_y += (this.ball_velocity_y / elapsed_time) * 16;
+		this.earlier_time = now;
 	};
 	this.draw_ball = function ()
 	{
@@ -327,7 +332,7 @@ class make_scores {
 	}
 }}
 
-function init_paddle_scores (){
+function init_paddle_scores () {
 	ball = new make_ball(ball);
 	paddle_left.resize_paddle();
 	paddle_right.resize_paddle();
@@ -548,10 +553,21 @@ function simple_AI (ball)
 	}
 	else if(right_ai == true && ball.ball_velocity_x > 0) // ball is moving RIGHT
 	{
+		console.log("MOVING RIGHT");
 		if (ball.pos_y <= paddle_right.pos_y) // ball is above the paddle
+		{
+			console.log("PRE paddle_right.pos_y: ", paddle_right.pos_y);
 			paddle_right.pos_y -= paddle_pace;
+			console.log("POST paddle_right.pos_y: ", paddle_right.pos_y);
+		}
 		if (ball.pos_y >= paddle_right.pos_y + paddle_right.height) // ball is below the paddle
+		{
+			console.log("PRE paddle_right.pos_y: ", paddle_right.pos_y);
 			paddle_right.pos_y += paddle_pace;
+			console.log("POST paddle_right.pos_y: ", paddle_right.pos_y);
+		}
+	
+	
 	}
 	if(top_ai == true && ball.ball_velocity_y < 0) // ball is moving TOP
 	{
@@ -569,41 +585,86 @@ function simple_AI (ball)
 	}
 }
 
+let last_time = {left : null, top : null, right : null, bottom : null};
+let now = Date.now();
+
 function move_paddle()
 {
+	let now = Date.now();
+	let elapsed_time;
+
+	if(bottom_direction == 0)
+		last_time.bottom = null;
+	else if(top_direction == 0)
+		last_time.top = null;
+	else if(left_direction == 0)
+		last_time.left = null;
+	else if(right_direction == 0)
+		last_time.right = null;
+
 	if(bottom_direction != 0)
 	{
-		if(paddle_bottom.pos_x + paddle_bottom.height <= canvas.width)
-			paddle_bottom.pos_x += bottom_direction * paddle_pace;
+		if(last_time.bottom == null)
+			last_time.bottom = now;
+		elapsed_time = now - last_time.bottom;
+
+		if(paddle_bottom.pos_x + paddle_bottom.height <= canvas.width && elapsed_time != 0)
+			paddle_bottom.pos_x += ((bottom_direction * paddle_pace) / elapsed_time) * 16;
+
 		if(paddle_bottom.pos_x + paddle_bottom.height > canvas.width)
 			paddle_bottom.pos_x = canvas.width - paddle_bottom.height;
-		if(paddle_bottom.pos_x < 0)
+		else if(paddle_bottom.pos_x < 0)
 			paddle_bottom.pos_x = 0;
+
+		last_time.bottom = now;
 	}
 	if(top_direction != 0)
 	{
-		if(paddle_top.pos_x + paddle_top.height <= canvas.width)
-			paddle_top.pos_x += top_direction * paddle_pace;
-		if(paddle_top.pos_x + paddle_top.height > canvas.width)
-			paddle_top.pos_x = canvas.width - paddle_top.height;
-		if(paddle_top.pos_x < 0)
+		if(last_time.top == null)
+			last_time.top = now;
+		elapsed_time = now - last_time.top;
+
+		if(paddle_top.pos_x + paddle_top.height <= canvas.height && elapsed_time != 0)
+			paddle_top.pos_x += ((top_direction * paddle_pace) / elapsed_time) * 16;
+
+		if(paddle_top.pos_x + paddle_top.height > canvas.height)
+			paddle_top.pos_x = canvas.height - paddle_top.height;
+		else if(paddle_top.pos_x < 0)
 			paddle_top.pos_x = 0;
+
+		last_time.top = now;
 	}
-	if(left_direction != 0) {
-		if(paddle_left.pos_y + paddle_left.height <= canvas.width)
-			paddle_left.pos_y -= left_direction * paddle_pace;
-		if(paddle_left.pos_y + paddle_left.height > canvas.width)
-			paddle_left.pos_y = canvas.width - paddle_left.height;
-		if(paddle_left.pos_y < 0)
+	if(left_direction != 0) 
+	{
+		if(last_time.left == null)
+			last_time.left = now;
+		elapsed_time = now - last_time.left;
+
+		if(paddle_left.pos_y + paddle_left.height <= canvas.height && elapsed_time != 0)
+			paddle_left.pos_y += ((left_direction * paddle_pace) / elapsed_time) * 16;
+
+		if(paddle_left.pos_y + paddle_left.height > canvas.height)
+			paddle_left.pos_y = canvas.height - paddle_left.height;
+		else if(paddle_left.pos_y < 0)
 			paddle_left.pos_y = 0;
+
+		last_time.left = now;
 	}
-	if(right_direction != 0) {
-		if(paddle_right.pos_y + paddle_right.height <= canvas.width)
-			paddle_right.pos_y -= right_direction * paddle_pace;
+	if(right_direction != 0)
+	{
+		if(last_time.right == null)
+			last_time.right = now;
+		elapsed_time = now - last_time.right;
+
+		if(paddle_right.pos_y + paddle_right.height <= canvas.width && elapsed_time != 0)
+			paddle_right.pos_y += ((right_direction * paddle_pace) / elapsed_time) * 16;
+
 		if(paddle_right.pos_y + paddle_right.height > canvas.width)
 			paddle_right.pos_y = canvas.width - paddle_right.height;
-		if(paddle_right.pos_y < 0)
+		else if(paddle_right.pos_y < 0)
 			paddle_right.pos_y = 0;
+
+		last_time.right = now;
 	}
 }
 
@@ -685,6 +746,7 @@ function apply_paddle_movement(touch)
 
 	let start = {x : 0, y : 0};
 	let end = {x : 0, y : 0};
+	let pre_end = {x : 0, y : 0};
 	let vector = {x : 0, y : 0};
 	let time = {x : 0, y : 0};
 	let objectives = {left : null, top : null, right : null, bottom : null};
@@ -728,9 +790,9 @@ function apply_paddle_movement(touch)
 			// console.log("start x: ", start.x, "vector.x: ", vector.x, "time.y: ", time.y, "result: ", Math.abs(start.x + vector.x * time.y));
 			// console.log("canvas.height: ", canvas.height);
 		}
-		console.log("end.x", end.x);
-		console.log("end.y: ", end.y);
-		console.log(end);
+		// console.log("end.x", end.x);
+		// console.log("end.y: ", end.y);
+		// console.log(end);
 	}
 
 	// this.height = canvas.height / 8; paddle height is 1/8th of canvas, I need to use this to determine a certain amount variability / randomness
@@ -740,10 +802,11 @@ function apply_paddle_movement(touch)
 
 	function boss_AI(ball)
 	{
+		pre_end = {x : 0, y : 0};
 		let contact_width = (paddle_left.width + ball.radius);
-		if(left_direction == 1 && paddle_left.pos_y <= objectives.left)
+		if(left_direction == 1 && paddle_left.pos_y >= objectives.left)
 			left_direction = 0;
-		else if (left_direction == -1 && paddle_left.pos_y >= objectives.left)
+		else if (left_direction == -1 && paddle_left.pos_y <= objectives.left)
 			left_direction = 0;
 
 		let now = Date.now();
@@ -761,9 +824,10 @@ function apply_paddle_movement(touch)
 		find_next_point_of_contact(start, vector, ball);
 		while(end.x > contact_width && rounds < 5)
 		{
+			pre_end = end;
 			start.x = end.x;
 			start.y = end.y;
-			console.log("CONTACT IN LOOP: ", end);
+			// console.log("CONTACT IN LOOP: ", end);
 			if(end.y <= contact_width || end.y >= canvas.width - contact_width)
 				vector.y = -vector.y;
 			else
@@ -772,28 +836,27 @@ function apply_paddle_movement(touch)
 			rounds++;
 		}
 
-		if(rounds == 5)
-			console.log("ROUNDS == 5 WTF?");
-		// if(end.x <= paddle_left.width * 1.2)
 		if(end.x <= contact_width)
 		{
-			// fix objective
 			objectives.left = end.y - (paddle_left.height / 2);
 			objectives.left += - (randomness_play / 2) + (Math.random() * randomness_play);
 			if(paddle_left.pos_y >= objectives.left - paddle_left.height / 6 && paddle_left.pos_y <= objectives.left + paddle_left.height / 6)
 				return ;
 			if(paddle_left.pos_y < objectives.left) //
-				left_direction = -1;
-			else if (paddle_left.pos_y > objectives.left)
 				left_direction = 1;
+			else if (paddle_left.pos_y > objectives.left)
+				left_direction = -1;
 			if(left_direction != 0)
 			{
 				console.log("objective left: ", objectives.left);
 				console.log("paddle_left: ", paddle_left.pos_y);
-				debugger;
 			}
 			else
 				console.log("direction = 0");
+		}
+		if(pre_end.x <= canvas.width / 4)
+		{
+			
 		}
 		// console.log("left_dir: ", left_direction);
 		else if(end.x > paddle_left.width)
@@ -877,8 +940,7 @@ function apply_paddle_movement(touch)
 		if(isGoal == true)
 		{
 			console.log("GOOOAL!!!: ");
-			console.log("ball x: ", ball.pos_x);
-			console.log("ball y: ", ball.pos_y);
+			console.log("ball: ", ball);
 			reset_directions();
 			requestAnimationFrame(gameLoop);
 			return ;
