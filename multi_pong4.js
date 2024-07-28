@@ -371,7 +371,12 @@ function colliding_goal (){
 	return (false);
 }
 
-function colliding_ball_paddle (ball, paddles) {
+let last_hit = Date.now();
+
+function colliding_ball_paddle (ball, paddles) 
+{
+	let hit = null;
+	let now = Date.now();
 	if((ball.pos_x <= ball.radius + paddles.left.width) // LEFT PADDLE
 		&& ball.pos_y >= paddles.left.pos_y - ball.radius && ball.pos_y <= paddles.left.pos_y + paddles.left.height + ball.radius) // left paddle
 	{
@@ -382,8 +387,8 @@ function colliding_ball_paddle (ball, paddles) {
 		if(ball.pos_y + ball.radius / 2 >= paddles.left.pos_y + paddles.left.height)
 			ball.ball_velocity_y = Math.abs(ball.ball_velocity_y);
 		last_touch = "left";
+		hit = "left";
 		console.log("Hit Left");
-		return ("left");
 	}
 	else if((ball.pos_y <= ball.radius + paddles.top.width) // TOP PADDLE
 		&& ball.pos_x >= paddles.top.pos_x - ball.radius && ball.pos_x <= paddles.top.pos_x + paddles.top.height + ball.radius) // top paddle
@@ -395,8 +400,8 @@ function colliding_ball_paddle (ball, paddles) {
 		if(ball.pos_x + ball.radius / 2 >= paddles.top.pos_x + paddles.top.height)
 			ball.ball_velocity_x = Math.abs(ball.ball_velocity_x);
 		last_touch = "top";
+		hit = "top";
 		console.log("Hit Top");
-		return ("top");
 	}
 	else if((ball.pos_x >= canvas.width - (ball.radius + paddles.right.width)) // RIGHT PADDLE
 		&& ball.pos_y >= paddles.right.pos_y - ball.radius && ball.pos_y <= paddles.right.pos_y + paddles.right.height + ball.radius) // right paddle
@@ -408,8 +413,8 @@ function colliding_ball_paddle (ball, paddles) {
 		if(ball.pos_y + ball.radius / 2 >= paddles.right.pos_y + paddles.right.height)
 			ball.ball_velocity_y = Math.abs(ball.ball_velocity_y);
 		last_touch = "right";
+		hit = "right";
 		console.log("Hit Right");
-		return ("right");
 	}
 	else if((ball.pos_y >= canvas.height - (ball.radius + paddles.bottom.width)) // BOTTOM PADDLE
 		&& ball.pos_x >= paddles.bottom.pos_x - ball.radius && ball.pos_x <= paddles.bottom.pos_x + paddles.bottom.height + ball.radius) // bottom paddle
@@ -421,10 +426,15 @@ function colliding_ball_paddle (ball, paddles) {
 		if(ball.pos_x + ball.radius / 2 >= paddles.bottom.pos_x + paddles.bottom.height)
 			ball.ball_velocity_x = Math.abs(ball.ball_velocity_x);
 		last_touch = "bottom";
+		hit = "bottom";
 		console.log("Hit Bottom");
-		return ("bottom");
 	}
-	return (null);
+	if(hit != null)
+	{
+		console.log("REAL TIME: ", now - last_hit);
+		last_hit = now;
+	}
+	return (hit);
 }
 
 // PLAY
@@ -689,6 +699,18 @@ function apply_paddle_movement(touch)
 
 	function update_vector(vector, end, paddle_moving, contact_width)
 	{
+		let mulitplier = 0.045;
+
+		if(end.x <= contact_width || end.x >= canvas.width - contact_width)
+			vector.x -= mulitplier * canvas.width / ball_velocity_div;
+		else
+			vector.x += mulitplier * canvas.width / ball_velocity_div;
+
+		if(end.y <= contact_width || end.y >= canvas.width - contact_width)
+			vector.y -= mulitplier * canvas.width / ball_velocity_div;
+		else
+			vector.y += mulitplier * canvas.width / ball_velocity_div;
+
 		if(end.y <= contact_width || end.y >= canvas.width - contact_width)
 			vector.y = -vector.y;
 		else
@@ -739,12 +761,12 @@ function apply_paddle_movement(touch)
 			if(paddle_time >= ball_time && (paddle_time - ball_time) * paddle_pace < paddle_left.height / 2)
 			{
 				if(pre_end.y < paddle_left.pos_y)
-					return 1
+					return 1;
 				else 
-					return -1
+					return -1;
 			}
 			else
-				return 0
+				return 0;
 		}
 		if(pre_end.x >= canvas.width - contact_width) // Right
 		{
@@ -756,12 +778,12 @@ function apply_paddle_movement(touch)
 			if(paddle_time >= ball_time && (paddle_time - ball_time) * paddle_pace < paddle_right.height / 2)
 			{
 				if(pre_end.y < paddle_left.pos_y)
-					return 1
+					return 1;
 				else 
-					return -1
+					return -1;
 			}
 			else
-				return 0
+				return 0;
 		}
 		if(pre_end.y <= contact_width) // Top
 		{
@@ -773,12 +795,12 @@ function apply_paddle_movement(touch)
 			if(paddle_time >= ball_time && (paddle_time - ball_time) * paddle_pace < paddle_top.height / 2)
 			{
 				if(pre_end.x < paddle_left.pos_y)
-					return -1
+					return -1;
 				else 
-					return 1
+					return 1;
 			}
 			else
-				return 0
+				return 0;
 		}
 		if(pre_end.y <= contact_width) // Bottom
 		{
@@ -786,16 +808,16 @@ function apply_paddle_movement(touch)
 				paddle_time = (paddle_bottom.pos_x - pre_end.x) / paddle_pace;
 			if(pre_end.x > paddle_bottom.pos_x + paddle_bottom.height)
 				paddle_time = (pre_end.x - paddle_bottom.pos_x + paddle_bottom.height) / paddle_pace;
-			
+
 			if(paddle_time >= ball_time && (paddle_time - ball_time) * paddle_pace < paddle_bottom.height / 2)
 			{
 				if(pre_end.x < paddle_left.pos_y)
-					return -1
-				else 
-					return 1
+					return -1;
+				else
+					return 1;
 			}
 			else
-				return 0
+				return 0;
 		}
 		return 0;
 	}
@@ -840,7 +862,7 @@ function apply_paddle_movement(touch)
 				break;
 		}
 
-		if(rounds == 1) {
+		if(rounds == 2) {
 			shorter_path = {end_x : 0, end_y : 0, vector_x : vector.x * movement_multi, vector_y : vector.y / movement_multi};
 			longer_path = {end_x : 0, end_y : 0, vector_x : vector.x / movement_multi, vector_y : vector.y * movement_multi};
 			shorter_path.end_y = Math.abs(start.y + shorter_path.vector_y * time.x);
@@ -874,6 +896,9 @@ function apply_paddle_movement(touch)
 		}
 	}
 
+	let total_time = 0;
+	times = {};
+
 	function pro_AI(ball)
 	{
 		let start = {x : ball.pos_x, y :  ball.pos_y};
@@ -881,38 +906,32 @@ function apply_paddle_movement(touch)
 		let vector = {x : ball.ball_velocity_x, y : ball.ball_velocity_y};
 		let paddle_moving = 0;
 		let contact_width = (paddle_left.width + ball.radius);
+		rounds = null;
 		let now = Date.now();
-		let total_time = 0;
-		
-		for(let key in times)
-		{
-			total_time = times[key] / 16;
-		}
 
 		if(left_direction == 1 && paddle_left.pos_y >= objectives.left)
 			left_direction = 0;
 		else if (left_direction == -1 && paddle_left.pos_y <= objectives.left)
 			left_direction = 0;
 
-		// console.log("LAST MOVE: ", last_move);
-		
 		if(now - last_move < 1000 || left_boss_ai == false)
 			return ;
-		
-		console.log("TOTAL TIME: ", total_time);
 
-		console.log("!!!!total_time: ", total_time);
-		if(now - last_move - total_time < 1000)
-		{
-			console.log("YESSSSS");
+		if(now - last_move < total_time)
 			return ;
-		}
 
 		last_move = Date.now();
 
+		total_time = 0;
+		for(let key in times)
+		{
+			if(key > 3)
+				break ;
+			total_time += times[key];
+		}
+		total_time *= 0.8;
 		times = {};
-		rounds = 0;
-		
+
 		while(1) {
 			if(end.x != null)
 			{
@@ -923,11 +942,34 @@ function apply_paddle_movement(touch)
 			paddle_moving = paddle_will_sprint(start, end, vector, contact_width);
 			update_vector(vector, end, paddle_moving, contact_width);
 			rounds++;
-			if(end.x <= contact_width || rounds > 4)
+			if(end.x <= contact_width || rounds > 10)
 				break;
-		} 
+		}
 
-		if(rounds == 0) {
+		if(rounds == 1) {
+			// vector here is set to the one after it bounces of of the AI's paddle
+			start.y = end.y;
+			start.x = end.x;
+			while(end.x > contact_width)
+			{
+				find_next_point_of_contact(start, end, vector, ball, times, null); // won't update times because rounds is set to null
+				paddle_moving = paddle_will_sprint(start, end, vector, contact_width);
+				update_vector(vector, end, paddle_moving, contact_width);
+			}
+
+			// if(vector.y > 0)
+			// 	end.y = canvas.height - contact_width;
+			// else
+			// 	end.y = contact_width;
+
+			// shorter_path = {end_x : 0, end_y : end.y, vector_x : vector.x * movement_multi, vector_y : vector.y / movement_multi};
+			// longer_path = {end_x : 0, end_y : end.y, vector_x : vector.x / movement_multi, vector_y : vector.y * movement_multi};
+			
+			// let d_short = 
+				
+			}
+
+		if(rounds == 2) {
 			shorter_path = {end_x : 0, end_y : 0, vector_x : vector.x * movement_multi, vector_y : vector.y / movement_multi};
 			longer_path = {end_x : 0, end_y : 0, vector_x : vector.x / movement_multi, vector_y : vector.y * movement_multi};
 			shorter_path.end_y = Math.abs(start.y + shorter_path.vector_y * time.x);
@@ -939,7 +981,7 @@ function apply_paddle_movement(touch)
 			else if(distance < paddle_left.height && shorter_path.end_y > longer_path.end_y)
 				end.y = longer_path.end_y + distance / 2;
 		}
-		if(end.x <= contact_width)
+		if(end.x <= contact_width && (end.y < paddle_left.pos_y + paddle_left.height * 0.2 || end.y > paddle_left.pos_y + paddle_left.height * 0.8))
 		{
 			objectives.left = end.y - (paddle_left.height / 2);
 			objectives.left += - (randomness_play / 2) + (Math.random() * randomness_play);
@@ -951,15 +993,20 @@ function apply_paddle_movement(touch)
 				left_direction = 1;
 			else if (paddle_left.pos_y > objectives.left)
 				left_direction = -1;
-			// if(left_direction != 0)
-			// {
-			// 	console.log("objective left: ", objectives.left);
-			// 	console.log("paddle_left: ", paddle_left.pos_y);
-			// }
-			// else
-			// 	console.log("direction = 0");
+			if(left_direction != 0) {
+				console.log("objective left: ", objectives.left);
+				console.log("paddle_left: ", paddle_left.pos_y);
+			}
+			else
+				console.log("direction = 0");
+			if(rounds == 1)
+			{
+				let wait_time;
+				time_for_another_round(end, ball, contact_width);
+			}
 		}
 	}
+
 
 	function reset_directions()
 	{
